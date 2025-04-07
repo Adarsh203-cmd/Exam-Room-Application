@@ -74,7 +74,7 @@ python manage.py migrate
 python manage.py runserver
 
 
-🌐 Frontend Setup (React)
+### 🌐 Frontend Setup (React)
 cd frontend
 npx create-react-app exam-ui
 cd exam-ui
@@ -82,7 +82,7 @@ npm start
 
 
 
-🌳 Git Workflow
+### 🌳 Git Workflow
 Clone repo once
 
 ```bash
