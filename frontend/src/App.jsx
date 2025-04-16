@@ -7,6 +7,13 @@ import SignupForm from './components/register_module/signupform';
 import EmployeeForm from './components/register_module/employeeform';
 import LoginForm from './components/register_module/Login';
 import CandidateProfileForm from './components/register_module/candidateprofileform';
+import OtpVerification from './components/register_module/otpverification';
+import ForgotPassword from './components/register_module/forgotpassword';
+import ExamOverview from './components/exam_taker_module/exam_overview';
+import Dashboard from './components/register_module/Dashboard';
+
+// ✅ Import the ProtectedRoute component
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 const App = () => {
   return (
@@ -18,6 +25,19 @@ const App = () => {
           <Route path="/employee" element={<EmployeeForm />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/candidate-profile" element={<CandidateProfileForm />} />
+          <Route path="/otp-verification" element={<OtpVerification />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/exam-overview" element={<ExamOverview />} />
+
+          {/* ✅ Secure dashboard for admin only */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </div>
     </Router>

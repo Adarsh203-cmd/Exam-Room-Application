@@ -9,9 +9,94 @@ from .models import InternalCandidate, ExternalCandidate
 from .serializers import InternalCandidateSerializer, ExternalCandidateSerializer
 import random
 import string
+from django.conf import settings
+from django.db.models import Q
+
+#Candidate Registration
+class CandidateRegisterView(APIView):
+    def post(self, request):
+        data = request.data
+        user_type = data.get('user_type')
+
+        if user_type == 'external':
+            # Generate user_id and password
+            prefix = "EXT"
+            count = ExternalCandidate.objects.count() + 1
+            user_id = f"{prefix}{1000 + count}"
+            raw_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            hashed_password = make_password(raw_password)
+
+            data['user_id'] = user_id
+            data['password'] = hashed_password
+
+            serializer = ExternalCandidateSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                # Send email with raw password
+                message = (
+                    f"Hello {data['first_name']} {data['last_name']},\n\n"
+                    f"Thank you for registering for the Exam Portal at Elogixa.\n\n"
+                    f"Here are your login credentials:\n"
+                    f"User ID: {user_id}\n"
+                    f"Password: {raw_password}\n\n"
+                    f"Please keep this information safe and do not share it with anyone.\n\n"
+                    f"Best regards,\nElogixa Team"
+                )
+
+                send_mail(
+                    subject="Exam Portal Registration Details",
+                    message=message,
+                    from_email="noreply@example.com",
+                    recipient_list=[data['email']],
+                    fail_silently=False,
+                )
+
+                return Response({"message": "External candidate registered successfully."}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        elif user_type == 'internal':
+            # Generate user_id and password
+            prefix = "INT"
+            count = InternalCandidate.objects.count() + 1
+            user_id = f"{prefix}{1000 + count}"
+            raw_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            hashed_password = make_password(raw_password)
+
+            data['user_id'] = user_id
+            data['password'] = hashed_password
+
+            serializer = InternalCandidateSerializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                # Send email with raw password
+                message = (
+                    f"Hello {data['first_name']} {data['last_name']},\n\n"
+                    f"Thank you for registering for the Exam Portal at Elogixa.\n\n"
+                    f"Here are your login credentials:\n"
+                    f"User ID: {user_id}\n"
+                    f"Password: {raw_password}\n\n"
+                    f"Please keep this information safe and do not share it with anyone.\n\n"
+                    f"Best regards,\nElogixa Team"
+                )
+
+                send_mail(
+                    subject="Exam Portal Registration Details",
+                    message=message,
+                    from_email="noreply@example.com",
+                    recipient_list=[data['email']],
+                    fail_silently=False,
+                )
+
+                return Response({"message": "Internal candidate registered successfully."}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"error": "Invalid user type"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Helper function to generate OTP
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
@@ -158,35 +243,34 @@ class LoginView(APIView):
         if not user_id or not password:
             return Response({"error": "User ID and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = None
-        user_type = None
-
-        # Check in InternalCandidate
-        try:
-            user = InternalCandidate.objects.get(user_id=user_id)
-            user_type = 'internal'
-        except InternalCandidate.DoesNotExist:
-            pass
-
-        # Check in ExternalCandidate if not found internally
-        if not user:
+            from django.contrib.auth.models import User
             try:
-                user = ExternalCandidate.objects.get(user_id=user_id)
-                user_type = 'external'
-            except ExternalCandidate.DoesNotExist:
-                return Response({"error": "Invalid User ID or password."}, status=status.HTTP_401_UNAUTHORIZED)
+                admin_user = User.objects.get(email=identifier)
+                if check_password(password, admin_user.password):
+                    return Response({"message": "Admin login successful", "role": "admin"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
+            except User.DoesNotExist:
+                return Response({"error": "Admin not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Verify password
-        if not check_password(password, user.password):
-            return Response({"error": "Invalid User ID or password."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Serialize and return user data (excluding password)
-        serializer_class = InternalCandidateSerializer if user_type == 'internal' else ExternalCandidateSerializer
-        serialized_user = serializer_class(user).data
-        serialized_user.pop('password', None)  # Remove password from response
+        elif login_type == 'candidate':
+            try:
+                # Try finding user in both models
+                candidate = InternalCandidate.objects.filter(user_id=identifier).first() or \
+                            ExternalCandidate.objects.filter(user_id=identifier).first()
 
-        return Response({
-            "message": "Login successful.",
-            "user_type": user_type,
-            "user_data": serialized_user
-        }, status=status.HTTP_200_OK)
+                if candidate and check_password(password, candidate.password):
+                    return Response({
+                        "message": "Candidate login successful",
+                        "role": "internal" if isinstance(candidate, InternalCandidate) else "external",
+                        "candidate_id": str(candidate.id)
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            except Exception as e:
+                return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        else:
+            return Response({"error": "Invalid login type"}, status=status.HTTP_400_BAD_REQUEST)
