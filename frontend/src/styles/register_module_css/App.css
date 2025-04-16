@@ -1,12 +1,26 @@
-/* Parent container layout: flex */
+/* Wrapper to center the form on the screen */
+.signup-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f2f2f2;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Container that holds text and form */
 .signup-container {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 30px;
-  padding: 40px;
-  max-width: 1200px;
+  width: 800px;
   margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
 /* Left side text */
@@ -26,115 +40,51 @@
 
 .signup-text p {
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.8;         /* More breathing room between lines */
+  letter-spacing: 0.3px;    /* Slight spacing between letters */
   color: #444;
+  margin-bottom: 16px;      /* Space between multiple paragraphs */
 }
 
-/* Right side form with border */
+/* Right side form */
 .signup-form {
-  flex: 1;
+  flex: none;
+  width: 600px;
   background-color: #fdfdfd;
   padding: 30px;
   border-radius: 8px;
-}
-
-.outlined-form {
   border: 2px solid #ccc;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
-/* General styling */
+/* Form structure */
 .signup-form form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.input-row {
-  display: flex;
-  gap: 10px;
-}
-
+/* Input and textarea styles */
 textarea, input, select {
   padding: 10px;
   border: 1px solid #aaa;
   border-radius: 5px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 textarea {
   resize: none;
 }
 
-.radio-group {
-  display: flex;
-  gap: 15px;
-}
-
-button[type="submit"] {
-  padding: 10px;
-  background-color: #0077cc;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button[type="submit"]:hover {
-  background-color: #005fa3;
-}
-
-
-.signup-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 30px;
-  padding: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.signup-text {
-  flex: 1;
-  padding-right: 40px;
-}
-
-.signup-text h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-.signup-text p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #444;
-}
-
-.signup-form {
-  flex: 1;
-  background-color: #fdfdfd;
-  padding: 30px;
-  border-radius: 8px;
-}
-
-.outlined-form {
-  border: 2px solid #ccc;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-}
-
-.signup-form form {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Input row styling */
+/* Input rows */
 .input-row {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 15px;
   flex-wrap: wrap;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .input-row label {
@@ -147,13 +97,9 @@ button[type="submit"]:hover {
   flex: 1;
   min-width: 250px;
   max-width: 100%;
-  box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid #aaa;
-  border-radius: 5px;
 }
 
-/* Special handling for rows with two fields */
+/* Two-field adjustment */
 .input-row.two-fields label {
   flex: 0 0 100px;
 }
@@ -163,21 +109,60 @@ button[type="submit"]:hover {
   min-width: 180px;
 }
 
-/* Textarea */
-textarea {
-  resize: none;
+/* Error message */
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+  display: none;
+  width: 100%;
 }
 
-/* Button */
+.input-row input.error {
+  border-color: red;
+}
+
+.input-row input.error + .error-message {
+  display: block;
+}
+
+/* Radio buttons */
+.radio-group {
+  display: flex;
+  gap: 15px;
+}
+
+/* Password visibility toggle */
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 14px;
+  color: #0077cc;
+}
+
+/* Submit button */
+button,
 button[type="submit"] {
-  padding: 10px 20px;
+  width: 100%;
+  padding: 12px;
   background-color: #0077cc;
   color: white;
   border: none;
   border-radius: 5px;
+  font-size: 16px;
   cursor: pointer;
+  margin-top: 10px;
 }
 
 button[type="submit"]:hover {
   background-color: #005fa3;
+}
+
+/* Optional outlined form reuse class */
+.outlined-form {
+  border: 2px solid #ccc;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
 }

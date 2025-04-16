@@ -1,9 +1,11 @@
-// src/EmployeeForm.jsx
+// src/components/register_module/Login.jsx
 import React from 'react';
-import "../../styles/register_module_css/App.css";
- // Keep your existing styling
+import { useNavigate } from 'react-router-dom';
+import '../../styles/register_module_css/App.css'; // Existing styling
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="signup-container">
       <div className="signup-text">
@@ -11,18 +13,23 @@ const LoginForm = () => {
           Welcome to <br />
           <span>Elogixa Technology India Pvt Ltd</span>
         </h1>
-        
       </div>
 
       <div className="signup-form outlined-form">
         <h2>Login to your Account</h2>
         <form>
-         
+          <input type="text" placeholder="UserID" required />
+          <input type="password" placeholder="Password" required />
 
-          <input type="email" placeholder="Email" required />
-          <input type="text" placeholder="Phone Number" required />
-
-          
+          {/* Forgot password link */}
+          <div className="forgot-password-container">
+            <span
+              className="forgot-password-link"
+              onClick={() => navigate('/forgot-password')}
+            >
+              Forgot Password?
+            </span>
+          </div>
 
           <button type="submit">Login</button>
         </form>

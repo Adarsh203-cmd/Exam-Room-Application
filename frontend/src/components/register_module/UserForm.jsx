@@ -10,7 +10,8 @@ const UserForm = ({
   showEmployeeId = false,
   showAddress = false,
   showPincodeCity = false,
-  buttonLabel = "Register"
+  buttonLabel = "Register",
+  handleSubmit // Add handleSubmit here
 }) => {
   return (
     <div className="signup-container">
@@ -23,7 +24,7 @@ const UserForm = ({
 
       <div className="signup-form outlined-form">
         <h2>{formTitle}</h2>
-        <form>
+        <form onSubmit={handleSubmit}> {/* Attach the handleSubmit function to form submission */}
           <div className="input-row">
             <input type="text" placeholder="First Name" required />
             <input type="text" placeholder="Last Name" required />
