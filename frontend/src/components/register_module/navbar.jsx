@@ -8,10 +8,11 @@ const Navbar = () => {
     <nav className="sidebar">
       <h2 className="logo">Elogixa</h2>
       <div className="nav-links">
-        <Link to="/employee">Employee</Link>
-        <Link to="/signup">Student</Link>
-        <Link to="/candidate-profile">Candidate</Link>
+        <Link to="/employee">Internal Registration</Link>
+        <Link to="/signup">External Registration</Link>
+        <Link to="/candidate-profile">Manage Profile</Link>
         <Link to="/login">Login</Link>
+        <Link to="/exam-overview">Examoverview</Link>
       </div>
     </nav>
   );
