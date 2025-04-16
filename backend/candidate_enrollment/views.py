@@ -11,6 +11,8 @@ import random
 import string
 from django.conf import settings
 from django.db.models import Q
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 #Candidate Registration
 class CandidateRegisterView(APIView):
@@ -185,6 +187,8 @@ class LoginView(APIView):
             try:
                 admin_user = User.objects.get(email=identifier)
                 if check_password(password, admin_user.password):
+                    # Issue JWT Token
+                    refresh = RefreshToken.for_user(admin_user)
                     return Response({"message": "Admin login successful", "role": "admin"}, status=status.HTTP_200_OK)
                 else:
                     return Response({"error": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -199,6 +203,11 @@ class LoginView(APIView):
                             ExternalCandidate.objects.filter(user_id=identifier).first()
 
                 if candidate and check_password(password, candidate.password):
+                    # Manually mock a user-like object to issue token (JWT requires a `User` instance)
+                    dummy_user = User.objects.create_user(username=identifier)
+                    dummy_user.save()
+
+                    refresh = RefreshToken.for_user(dummy_user)
                     return Response({
                         "message": "Candidate login successful",
                         "role": "internal" if isinstance(candidate, InternalCandidate) else "external",
