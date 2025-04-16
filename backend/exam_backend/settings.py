@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "exam",
     "candidate_enrollment",
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +51,17 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React dev server
+]
+
+
+# Optional during dev:
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = "exam_backend.urls"
 

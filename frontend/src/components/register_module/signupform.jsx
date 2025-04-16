@@ -8,6 +8,8 @@ const SignupForm = () => {
       showDOB={true}
       showAadhar={true}
       showQualification={true}
+      showAddress = {true}
+      showPincodeCity = {true}
       showDesignation={false}
       buttonLabel="Signup"
     />
