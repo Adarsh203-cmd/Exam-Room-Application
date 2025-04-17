@@ -6,7 +6,7 @@ class MCQQuestionSerializer(serializers.ModelSerializer):
         model = MCQQuestion
         fields = '__all__'
 
-class FillInTheBlankSerializer(serializers.ModelSerializer):
+class FillBlankQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FillInTheBlankQuestion
         fields = '__all__'
