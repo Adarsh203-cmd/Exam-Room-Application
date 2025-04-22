@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "exam",
     "candidate_enrollment",
+    "exam_allotment"
 ]
 
 MIDDLEWARE = [
@@ -78,9 +79,9 @@ WSGI_APPLICATION = "exam_backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "exam_room",  # from SELECT current_database();
+        "NAME": "exam_room_db",  # from SELECT current_database();
         "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "hellosql",  # the one you set or just set
+        "PASSWORD": "root",  # the one you set or just set
         "HOST": "localhost",
         "PORT": "5432",
     }

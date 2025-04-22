@@ -1,11 +1,12 @@
-// src/main.jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles/exam_allotment_css/index.css';
+import './styles/exam_allotment_css/App.css';
+import './styles/exam_allotment_css/Nav.css';
 import App from './App.jsx';
-import "./styles/register_module_css/index.css";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>
+  </StrictMode>,
 );
