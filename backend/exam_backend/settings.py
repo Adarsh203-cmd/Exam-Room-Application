@@ -135,6 +135,7 @@ EMAIL_HOST_PASSWORD = (
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',  # Name of the cache (for LocMemCache, any name works)
     }
 }
 

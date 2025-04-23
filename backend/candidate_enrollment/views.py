@@ -7,10 +7,18 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from .models import InternalCandidate, ExternalCandidate
 from .serializers import InternalCandidateSerializer, ExternalCandidateSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 import random
 import string
+from django.contrib.auth.models import User
+from django.utils import timezone
 from django.conf import settings
 from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .filters import CandidateFilter
+from django.core.cache import cache
+#from .utils import generate_otp 
 
 #Candidate Registration
 class CandidateRegisterView(APIView):
@@ -161,7 +169,7 @@ class VerifyOTPAndRegisterView(APIView):
 
         # Verify OTP
         cached_otp = cache.get(f"otp_{email}")
-        if cached_otp != otp:
+        if str(cached_otp) != otp:
             return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate user ID and password
@@ -233,44 +241,171 @@ Please keep these credentials secure.
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-#LOGIN VIEW
+#LOGIN LOGIC
 class LoginView(APIView):
     def post(self, request):
+        print("Login request data:", request.data)
+
         user_id = request.data.get('user_id')
         password = request.data.get('password')
+        login_type = request.data.get('login_type')
 
-        if not user_id or not password:
-            return Response({"error": "User ID and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not user_id or not password or not login_type:
+            return Response({"error": "User ID, password, and login_type are required."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-            from django.contrib.auth.models import User
+        if login_type == 'admin':
             try:
-                admin_user = User.objects.get(email=identifier)
+                admin_user = User.objects.get(email=user_id)
                 if check_password(password, admin_user.password):
-                    return Response({"message": "Admin login successful", "role": "admin"}, status=status.HTTP_200_OK)
+                    refresh = RefreshToken.for_user(admin_user)
+                    return Response({
+                        "message": "Admin login successful",
+                        "role": "admin",
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh)
+                    }, status=status.HTTP_200_OK)
                 else:
                     return Response({"error": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
             except User.DoesNotExist:
                 return Response({"error": "Admin not found"}, status=status.HTTP_404_NOT_FOUND)
 
-
         elif login_type == 'candidate':
             try:
-                # Try finding user in both models
-                candidate = InternalCandidate.objects.filter(user_id=identifier).first() or \
-                            ExternalCandidate.objects.filter(user_id=identifier).first()
+                candidate = InternalCandidate.objects.filter(user_id=user_id).first() or \
+                            ExternalCandidate.objects.filter(user_id=user_id).first()
 
                 if candidate and check_password(password, candidate.password):
+                    # Create/get a temp user for JWT
+                    temp_user, _ = User.objects.get_or_create(username=f"{login_type}_{user_id}")
+                    refresh = RefreshToken.for_user(temp_user)
+
                     return Response({
                         "message": "Candidate login successful",
                         "role": "internal" if isinstance(candidate, InternalCandidate) else "external",
-                        "candidate_id": str(candidate.id)
+                        "candidate_id": str(candidate.id),
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh)
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
             except Exception as e:
+                print(f"Error during candidate login: {e}")
                 return Response({"error": "Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         else:
             return Response({"error": "Invalid login type"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# View to get candidate details
+class CandidateListView(APIView):
+    def get(self, request):
+        # Apply the filtering on InternalCandidate
+        internal_candidates = InternalCandidate.objects.all()
+        external_candidates = ExternalCandidate.objects.all()
+
+        # Use the CandidateFilter for internal candidates
+        internal_filter = CandidateFilter(request.query_params, queryset=internal_candidates)
+        internal_candidates = internal_filter.qs  # Get filtered results
+
+        # Filter for external candidates can be added as needed, e.g.:
+        # (You can also create a separate filter for ExternalCandidate if needed)
+
+        # Serialize the filtered data
+        internal_data = InternalCandidateSerializer(internal_candidates, many=True).data
+        external_data = ExternalCandidateSerializer(external_candidates, many=True).data
+
+        # Return the filtered results
+        return Response({
+            "internal_candidates": internal_data,
+            "external_candidates": external_data
+        }, status=status.HTTP_200_OK)  
+
+
+# Cache timeout (e.g., OTP is valid for 10 minutes)
+# View to send OTP for password reset
+class SendResetOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user exists
+        try:
+            user = ExternalCandidate.objects.get(email=email)
+        except ExternalCandidate.DoesNotExist:
+            try:
+                user = InternalCandidate.objects.get(email=email)
+            except InternalCandidate.DoesNotExist:
+                return Response({"error": "No user found with this email address"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Generate OTP
+        otp = generate_otp()
+
+        # Save OTP in cache with a timeout of 10 minutes (600 seconds)
+        cache.set(f"otp_{email}", otp, timeout=600)
+
+        # Send OTP to the email
+        send_mail(
+            subject="Your OTP for Password Reset",
+            message=f"Your OTP is {otp}. It is valid for 10 minutes.",
+            from_email="noreply@example.com",
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        return Response({"message": "OTP sent to your email."}, status=status.HTTP_200_OK)
+
+# View to reset password using OTP
+from django.core.mail import send_mail
+from django.conf import settings
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        otp = request.data.get("otp")
+        new_password = request.data.get("newPassword")
+
+        if not email or not otp or not new_password:
+            return Response({"error": "Email, OTP and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        cached_otp = cache.get(f"otp_{email}")
+        if not cached_otp or cached_otp != otp:
+            return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user exists
+        user = None
+        try:
+            user = ExternalCandidate.objects.get(email=email)
+        except ExternalCandidate.DoesNotExist:
+            try:
+                user = InternalCandidate.objects.get(email=email)
+            except InternalCandidate.DoesNotExist:
+                return Response({"error": "No user found with this email address"}, status=status.HTTP_404_NOT_FOUND)
+
+        # ✅ Hash the new password and update
+        user.password = make_password(new_password)
+        user.save()
+
+        # ✅ Clear the OTP
+        cache.delete(f"otp_{email}")
+
+        # ✅ Send email notification
+        subject = "Your password has been changed"
+        message = f"""Hi {user.first_name},
+
+This is to inform you that your password has been successfully changed.
+
+Your User ID: {user.user_id}
+Your New Password: {new_password}
+
+If you did not request this change, please contact support immediately.
+
+Regards,
+Exam Room Support Team
+"""
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+        return Response({"message": "Password reset successful!"}, status=status.HTTP_200_OK)

@@ -15,8 +15,11 @@ const SignupForm = () => {
       });
 
       if (response.status === 200) {
-        // Store the form data temporarily (optional: in localStorage or context)
-        localStorage.setItem("userData", JSON.stringify(formData));
+        // Store the data temporarily
+        localStorage.setItem("userData", JSON.stringify({
+          ...formData,
+          user_type: "external", // Differentiate from internal
+        }));
         navigate('/otp-verification');
       }
     } catch (error) {
@@ -33,12 +36,7 @@ const SignupForm = () => {
       showPincodeCity={true}
       showAadhar={true}
       showQualification={true}
-<<<<<<< HEAD
-      showAddress = {true}
-      showPincodeCity = {true}
       showDesignation={false}
-=======
->>>>>>> main
       buttonLabel="Signup"
       handleSubmit={handleSubmit}
     />

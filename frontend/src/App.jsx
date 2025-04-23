@@ -11,6 +11,7 @@ import OtpVerification from './components/register_module/otpverification';
 import ForgotPassword from './components/register_module/forgotpassword';
 import ExamOverview from './components/exam_taker_module/exam_overview';
 import Dashboard from './components/register_module/Dashboard';
+import CandidateProfileWrapper from './components/register_module/CandidateProfileWrapper';
 
 // ✅ Import the ProtectedRoute component
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
@@ -24,7 +25,12 @@ const App = () => {
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/employee" element={<EmployeeForm />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/candidate-profile" element={<CandidateProfileForm />} />
+          <Route
+            path="/candidate-profile"
+            element={
+            <ProtectedRoute allowedRole={["internal", "external"]}>
+          <CandidateProfileWrapper />
+          </ProtectedRoute> } />
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/exam-overview" element={<ExamOverview />} />
