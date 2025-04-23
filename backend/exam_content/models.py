@@ -14,7 +14,7 @@ class MCQQuestion(models.Model):
         ('Hard', 'Hard'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     subject = models.CharField(max_length=100)
     question_text = models.TextField()
     options = models.JSONField(help_text="List of options like ['A', 'B', 'C', 'D']")
@@ -38,7 +38,7 @@ class FillInTheBlankQuestion(models.Model):
         ('Hard', 'Hard'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True)
     subject = models.CharField(max_length=100)
     question_text = models.TextField()
     correct_answers = models.TextField()

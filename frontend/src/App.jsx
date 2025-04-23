@@ -1,15 +1,27 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import Navbar from './components/register_module/navbar';
-import SignupForm from './components/register_module/signupform';
-import EmployeeForm from './components/register_module/employeeform';
-import LoginForm from './components/register_module/Login';
-import CandidateProfileForm from './components/register_module/candidateprofileform';
-import OtpVerification from './components/register_module/otpverification'; // 🔹 Import the OTP component
-import ForgotPassword from './components/register_module/forgotpassword'; //
 import ExamOverview from './components/exam_taker_module/exam_overview';
+import CandidateProfileForm from './components/register_module/candidateprofileform';
+import EmployeeForm from './components/register_module/employeeform';
+import ForgotPassword from './components/register_module/forgotpassword'; //
+import LoginForm from './components/register_module/Login';
+import Navbar from './components/register_module/navbar';
+import OtpVerification from './components/register_module/otpverification'; // 🔹 Import the OTP component
+import SignupForm from './components/register_module/signupform';
+
+
+// Exam Content Module
+import FillInTheBlankCreatePage from './components/exam_content_module/FillInTheBlankCreatePage';
+import MCQCreatePage from './components/exam_content_module/MCQCreatePage';
+// ✅ MCQ Create Page
+
+
+
+
+// New exam content components
+
 
 const App = () => {
   return (
@@ -24,6 +36,11 @@ const App = () => {
           <Route path="/otp-verification" element={<OtpVerification />} /> {/* 🔹 Add this line */}
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/exam-overview" element={<ExamOverview />} />
+
+          {/* Exam Content Routes */}
+          <Route path="/mcq-create" element={<MCQCreatePage/> }/>
+         
+          <Route path="/fill-create" element={<FillInTheBlankCreatePage/>} />
         </Routes>
       </div>
     </Router>

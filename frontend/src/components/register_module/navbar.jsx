@@ -1,7 +1,7 @@
 // src/components/Navbar.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import "../../styles/register_module_css/Nav.css";// Custom styles for vertical navbar
+import "../../styles/register_module_css/Nav.css"; // Custom styles for vertical navbar
 
 const Navbar = () => {
   return (
@@ -13,6 +13,8 @@ const Navbar = () => {
         <Link to="/candidate-profile">Manage Profile</Link>
         <Link to="/login">Login</Link>
         <Link to="/exam-overview">Examoverview</Link>
+        <Link to="/mcq-create">mcq page</Link>  
+        <Link to="/fill-create">Fill blank page</Link>  
       </div>
     </nav>
   );
