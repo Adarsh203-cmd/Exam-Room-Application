@@ -1,15 +1,31 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import UserForm from './UserForm';
 
 const SignupForm = () => {
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload
+  const handleSubmit = async (e, formData) => {
+    e.preventDefault();
 
-    // Redirect to OTP verification page
-    navigate('/otp-verification'); // Navigate to OTP page
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/candidate/send-otp/', {
+        email: formData.email,
+      });
+
+      if (response.status === 200) {
+        // Store the data temporarily
+        localStorage.setItem("userData", JSON.stringify({
+          ...formData,
+          user_type: "external", // Differentiate from internal
+        }));
+        navigate('/otp-verification');
+      }
+    } catch (error) {
+      console.error("OTP sending failed", error);
+      alert("Failed to send OTP. Please try again.");
+    }
   };
 
   return (
@@ -22,11 +38,9 @@ const SignupForm = () => {
       showQualification={true}
       showDesignation={false}
       buttonLabel="Signup"
-      handleSubmit={handleSubmit} // Pass the handleSubmit function as a prop
+      handleSubmit={handleSubmit}
     />
   );
 };
 
 export default SignupForm;
-
-

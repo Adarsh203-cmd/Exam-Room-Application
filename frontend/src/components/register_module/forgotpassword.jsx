@@ -14,6 +14,8 @@ const ForgotPassword = () => {
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
@@ -30,11 +32,30 @@ const ForgotPassword = () => {
     }
   }, [newPassword, confirmPassword]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!showOtpFields) {
-      setShowOtpFields(true);
+      // Send email to backend to generate OTP
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:8000/api/candidate/reset/send-otp/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+        if (data.message === "OTP sent to your email.") {
+          setShowOtpFields(true); // Show OTP fields if email is valid and OTP sent
+        } else {
+          alert(data.error || "Something went wrong!"); // Show error if something goes wrong
+        }
+      } catch (error) {
+        alert('Error sending OTP!');
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -42,13 +63,32 @@ const ForgotPassword = () => {
       return;
     }
 
-    console.log('Resetting password with:', { email, otp, newPassword, confirmPassword });
+    // When OTP and new password are entered, reset the password
+    try {
+      setLoading(true);
+      const resetResponse = await fetch('http://localhost:8000/api/candidate/reset/password/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
 
-    setEmail('');
-    setOtp('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setShowOtpFields(false);
+      const resetData = await resetResponse.json();
+      if (resetResponse.status === 200) {
+        alert(resetData.message); // This will be "Password reset successful."
+        // Reset form state
+        setEmail('');
+        setOtp('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setShowOtpFields(false);
+      } else {
+        alert(resetData.error || "Password reset failed!");
+      }
+    } catch (error) {
+      alert('Error resetting password!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,6 +110,7 @@ const ForgotPassword = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={showOtpFields}
           />
 
           {showOtpFields && (
@@ -136,8 +177,8 @@ const ForgotPassword = () => {
             </>
           )}
 
-          <button type="submit">
-            {showOtpFields ? 'Submit' : 'Send OTP'}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Processing...' : showOtpFields ? 'Submit' : 'Send OTP'}
           </button>
         </form>
       </div>
