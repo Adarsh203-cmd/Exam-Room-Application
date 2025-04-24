@@ -24,6 +24,10 @@ const Navbar = () => {
         <Link to="/candidate-profile">Manage Profile</Link>
         <Link to="/exam-overview">Exam Overview</Link>
         <Link to="/login">Login</Link>
+
+        <Link to="/mcq-create">mcq page</Link>  
+        <Link to="/fill-create">Fill blank page</Link> 
+
       </div>
       <button className="logout-button" onClick={handleLogout}>
         Logout
