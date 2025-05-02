@@ -1,24 +1,246 @@
+import random
+import secrets
+import string
+
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.utils import timezone
 
 
-from django.shortcuts import render
-from rest_framework import viewsets
-from .models import exam_creation, exam_enrollment, CandidateExamAssignment, ExamSyllabusAndQuestion
-from .serializers import *
+from .models import exam_creation, ExamAssignment
+from .serializers import (
+    ExamCreationSerializer,
+    CandidateExamAssignmentSerializer,
+    ExamDetailSerializer,
+)
+from exam_content.models import MCQQuestion, FillInTheBlankQuestion
+from exam_content.serializers import MCQQuestionSerializer, FillBlankQuestionSerializer
+from candidate_enrollment.models import InternalCandidate, ExternalCandidate
 
-class ExamViewSet(viewsets.ModelViewSet):
+
+# ----- Dynamic Subject & Question Endpoints -----
+
+class SubjectListView(APIView):
+    """ GET /api/exam_allotment/subjects/ """
+    def get(self, request):
+        mcq_subs = MCQQuestion.objects.values_list('subject', flat=True).distinct()
+        fib_subs = FillInTheBlankQuestion.objects.values_list('subject', flat=True).distinct()
+        subjects = list(set(mcq_subs) | set(fib_subs))
+        return Response(subjects)
+
+
+class RandomQuestionsView(APIView):
+    """ GET /api/exam_allotment/random-questions/?subject=SUBJ&mcq_count=N&fib_count=M """
+    def get(self, request):
+        subject = request.query_params.get('subject')
+        mcq_count = int(request.query_params.get('mcq_count') or 0)
+        fib_count = int(request.query_params.get('fib_count') or 0)
+
+        if not subject or (mcq_count <= 0 and fib_count <= 0):
+            return Response({"error": "Provide subject and counts > 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        mcqs = list(MCQQuestion.objects.filter(subject=subject))
+        fibs = list(FillInTheBlankQuestion.objects.filter(subject=subject))
+
+        mcq_sample = random.sample(mcqs, min(mcq_count, len(mcqs)))
+        fib_sample = random.sample(fibs, min(fib_count, len(fibs)))
+
+        return Response({
+            'mcq': MCQQuestionSerializer(mcq_sample, many=True).data,
+            'fib': FillBlankQuestionSerializer(fib_sample, many=True).data
+        })
+
+
+# ----- Exam Creation & Detail -----
+
+class ExamCreationViewSet(viewsets.ModelViewSet):
+    """ CRUD for /api/exam_allotment/exams/ """
     queryset = exam_creation.objects.all()
-    serializer_class = ExamSerializer
+    serializer_class = ExamCreationSerializer
 
-class EnrollmentViewSet(viewsets.ModelViewSet):
-    queryset = exam_enrollment.objects.all()
-    serializer_class = EnrollmentSerializer
+    def generate_exam_token(self, length=10):
+        chars = string.ascii_uppercase + string.digits
+        return ''.join(secrets.choice(chars) for _ in range(length))
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        required = [
+            'exam_title', 'instruction', 'exam_start_time', 'exam_end_time',
+            'created_by', 'role_or_department', 'mcq_question_ids', 'fib_question_ids'
+        ]
+        missing = [f for f in required if f not in data]
+        if missing:
+            return Response({"error": f"Missing fields: {missing}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        token = self.generate_exam_token()
+        exam = exam_creation.objects.create(
+            exam_title=data['exam_title'],
+            instruction=data['instruction'],
+            exam_start_time=data['exam_start_time'],
+            exam_end_time=data['exam_end_time'],
+            created_by=int(data['created_by']),
+            role_or_department=data['role_or_department'],
+            mcq_question_ids=data.get('mcq_question_ids', []),
+            fib_question_ids=data.get('fib_question_ids', []),
+            location=data.get('location', ''),           # ← persist incoming location
+            exam_token=token,
+            exam_url=f"http://localhost:5173/login/{token}"
+        )
+        return Response(ExamCreationSerializer(exam).data, status=status.HTTP_201_CREATED)
+
+
+class ExamDetailView(APIView):
+    """ GET /api/exam_allotment/exams/{token}/questions/ """
+    def get(self, request, token):
+        exam = get_object_or_404(exam_creation, exam_token=token)
+        mcq_qs = MCQQuestion.objects.filter(id__in=exam.mcq_question_ids)
+        fib_qs = FillInTheBlankQuestion.objects.filter(id__in=exam.fib_question_ids)
+        return Response(ExamDetailSerializer({'exam': exam, 'mcq': mcq_qs, 'fib': fib_qs}).data)
+
+
+# ----- Candidate Enrollment & Assignment -----
 
 class CandidateExamAssignmentViewSet(viewsets.ModelViewSet):
-    queryset = CandidateExamAssignment.objects.all()
+    """ CRUD for /api/exam_allotment/assignments/ """
+    queryset = ExamAssignment.objects.all()
     serializer_class = CandidateExamAssignmentSerializer
 
-class ExamSyllabusAndQuestionViewSet(viewsets.ModelViewSet):
-    queryset = ExamSyllabusAndQuestion.objects.all()
-    serializer_class = ExamSyllabusAndQuestionSerializer
 
+class CandidateSelectionView(APIView):
+    """ GET lists candidates; POST sends emails and stores assignments """
 
+    def get(self, request):
+        internal = InternalCandidate.objects.all()
+        external = ExternalCandidate.objects.all()
+
+        def serialize(c, kind):
+            d = {
+                'id': str(c.id), 'user_id': c.user_id,
+                'first_name': c.first_name, 'last_name': c.last_name,
+                'email': c.email, 'type': kind
+            }
+            if kind == 'internal':
+                d.update({'employee_id': c.employee_id, 'designation': c.designation})
+            else:
+                d.update({'dob': c.dob, 'city': c.city})
+            return d
+
+        data = [serialize(c, 'internal') for c in internal] + [serialize(c, 'external') for c in external]
+        return Response(data)
+
+    def post(self, request):
+        exam_token = request.data.get('exam_token')
+        selected = request.data.get('selected_candidates') or []
+        if not exam_token:
+            return Response({"error": "Exam token required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not selected:
+            return Response({"error": "No candidates selected"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch the exam creation object using the exam_token
+        exam = get_object_or_404(exam_creation, exam_token=exam_token)
+        exam_location = exam.location or ""    # ← capture location
+
+        # Retrieve the internal and external candidates based on the selected user IDs
+        interns = InternalCandidate.objects.filter(id__in=selected)
+        externs = ExternalCandidate.objects.filter(id__in=selected)
+
+        assignments = []
+        for c in list(interns) + list(externs):
+            # Prepare the email subject and message
+            subj = f"Your Exam Details for {exam.exam_title}"
+            msg = (
+                f"Dear {c.first_name} {c.last_name},\n\n"
+                f"You are invited to the recruitment exam “{exam.exam_title}”.\n\n"
+                f"Start: {exam.exam_start_time}\n"
+                f"End:   {exam.exam_end_time}\n"
+                f"Location: {exam.location or 'TBA'}\n\n"
+                f"To begin your exam, please click the link below:\n"
+                f"{exam.exam_url}\n\n"
+                f"Good luck!\nRecruitment Team"
+            )
+            try:
+                send_mail(subj, msg, settings.EMAIL_HOST_USER, [c.email], fail_silently=False)
+            except Exception as mail_exc:
+                print(f"Warning: failed to send mail to {c.email}: {mail_exc}")
+
+            # Create the assignment record for the selected candidate
+            assignment = ExamAssignment(
+                exam_token=exam.exam_token,    # store the exam token
+                url_link=exam.exam_url,        # store the exam URL
+                invitation_sent_flag=True,
+                location=exam_location,        # ← set location on assignment
+            )
+
+            # Assign candidate details based on internal or external candidate
+            if isinstance(c, InternalCandidate):
+                assignment.internal_candidate = c
+                assignment.user_id = c.user_id
+                assignment.first_name = c.first_name
+                assignment.last_name = c.last_name
+                assignment.email = c.email
+                assignment.password = c.password
+            else:
+                assignment.external_candidate = c
+                assignment.user_id = c.user_id
+                assignment.first_name = c.first_name
+                assignment.last_name = c.last_name
+                assignment.email = c.email
+                assignment.password = c.password
+
+            assignment.save()
+            assignments.append(assignment)
+
+        return Response({
+            "message": "Emails sent and assignments created successfully.",
+            "assignments": [
+                {
+                    "assignment_id": a.assignment_id,
+                    "exam_token":    a.exam_token,
+                    "url_link":      a.url_link,
+                    "exam_start_time": a.exam_start_time,
+                    "exam_end_time":   a.exam_end_time,
+                } for a in assignments
+            ]
+        }, status=status.HTTP_200_OK)
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.utils import timezone
+from .models import exam_creation, ExamAssignment
+from .serializers import ExamCreationSerializer, CandidateExamAssignmentSerializer
+
+class ScheduledExamsView(APIView):
+    """ GET /api/exam_allotment/scheduled/ """
+    def get(self, request):
+        now = timezone.now()
+        upcoming = exam_creation.objects.filter(exam_end_time__gt=now)
+        results = []
+
+        for exam in upcoming:
+            assignments = ExamAssignment.objects.filter(exam=exam)
+            results.append({
+                "exam": ExamCreationSerializer(exam).data,
+                "assignments": CandidateExamAssignmentSerializer(assignments, many=True).data
+            })
+
+        return Response(results, status=status.HTTP_200_OK)
+
+class CompletedExamsView(APIView):
+    """ GET /api/exam_allotment/exams/completed/ """
+    def get(self, request):
+        now = timezone.now()
+        # exams whose end_time is in the past
+        done = exam_creation.objects.filter(exam_end_time__lte=now)
+        data = []
+        for exam in done:
+            assigns = ExamAssignment.objects.filter(exam=exam)
+            data.append({
+                'exam': ExamCreationSerializer(exam).data,
+                'assignments': CandidateExamAssignmentSerializer(assigns, many=True).data
+            })
+        return Response(data)
+    
