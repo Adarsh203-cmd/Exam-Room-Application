@@ -1,17 +1,16 @@
 // src/components/Navbar.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import "../../styles/register_module_css/Nav.css"; // Custom styles for vertical navbar
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const [showExamLinks, setShowExamLinks] = useState(false);
 
   const handleLogout = () => {
-    // Clear authentication tokens and role
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("role");
-    // Redirect to login page
     navigate("/login", { replace: true });
   };
 
@@ -28,7 +27,21 @@ const Navbar = () => {
         <Link to="/mcq-create">mcq page</Link>  
         <Link to="/fill-create">Fill blank page</Link> 
 
+        {/* Exam Dashboard with dropdown */}
+        <div className="dropdown">
+          <span className="dropdown-toggle" onClick={() => setShowExamLinks(!showExamLinks)}>
+            Exam Management ▼
+          </span>
+          {showExamLinks && (
+            <div className="dropdown-links">
+              <Link to="/exams/create">Create Exam</Link>
+              <Link to="/exams/scheduled">Scheduled Exams</Link>
+              <Link to="/exams/completed">Completed Exams</Link>
+            </div>
+          )}
+        </div>
       </div>
+
       <button className="logout-button" onClick={handleLogout}>
         Logout
       </button>
