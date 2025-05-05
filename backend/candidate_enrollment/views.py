@@ -221,13 +221,11 @@ class VerifyOTPAndRegisterView(APIView):
                 subject="Registration Successful",
                 message=f"""Welcome {data['first_name']} {data['last_name']},
 
-Your registration was successful.
-
-User ID: {user_id}
-Password: {password_plain}
-
-Please keep these credentials secure.
-""",
+                Your registration was successful.
+                User ID: {user_id}
+                Password: {password_plain}
+                Please keep these credentials secure.
+                """,
                 from_email="noreply@example.com",
                 recipient_list=[email],
                 fail_silently=False,
