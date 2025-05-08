@@ -13,6 +13,12 @@ const Navbar = () => {
         <Link to="/candidate-profile">Manage Profile</Link>
         <Link to="/login">Login</Link>
         <Link to="/exam-overview">Examoverview</Link>
+        <Link to="/exam-window">Examoverview</Link>
+        <Link to="/create-exam">Create Exam</Link>
+        <Link to="/exam-screen">ExamScreen</Link>
+        <Link to="/Dashboard">Dashboard</Link>
+        
+       
       </div>
     </nav>
   );

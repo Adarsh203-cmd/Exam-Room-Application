@@ -80,7 +80,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "exam_room",  # from SELECT current_database();
         "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "hellosql",  # the one you set or just set
+        "PASSWORD": "Denis26#",  # the one you set or just set
         "HOST": "localhost",
         "PORT": "5432",
     }
