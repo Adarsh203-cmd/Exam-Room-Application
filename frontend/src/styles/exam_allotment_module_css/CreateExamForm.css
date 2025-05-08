@@ -1,0 +1,36 @@
+.subject-selection {
+    width: 100%;
+  }
+  
+  .subject-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    justify-content: flex-start;
+  }
+  
+  .subject-label {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-right: 12px;
+  }
+  
+  .subject-label input[type="checkbox"] {
+    margin-right: 6px;
+  }
+  
+  .subject-inputs {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  
+  .subject-inputs input {
+    width: 100px;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  

@@ -26,20 +26,8 @@ const Navbar = () => {
 
         <Link to="/mcq-create">mcq page</Link>  
         <Link to="/fill-create">Fill blank page</Link> 
+        <Link to="/exams/create">Create Exam</Link>
 
-        {/* Exam Dashboard with dropdown */}
-        <div className="dropdown">
-          <span className="dropdown-toggle" onClick={() => setShowExamLinks(!showExamLinks)}>
-            Exam Management ▼
-          </span>
-          {showExamLinks && (
-            <div className="dropdown-links">
-              <Link to="/exams/create">Create Exam</Link>
-              <Link to="/exams/scheduled">Scheduled Exams</Link>
-              <Link to="/exams/completed">Completed Exams</Link>
-            </div>
-          )}
-        </div>
       </div>
 
       <button className="logout-button" onClick={handleLogout}>

@@ -23,9 +23,6 @@ import MCQCreatePage from './components/exam_content_module/MCQCreatePage';
 import CreateExamForm from './components/exam_allotment_module/CreateExamForm';
 import CandidateSelectionPage from './components/exam_allotment_module/CandidateSelectionPage';
 
-// Dashboard sub-pages (Scheduled / Completed)
-import ScheduledExams from './components/exam_allotment_module/ScheduledExams';
-import CompletedExams from './components/exam_allotment_module/CompletedExams';
 
 const App = () => {
   return (
@@ -38,6 +35,7 @@ const App = () => {
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/employee" element={<EmployeeForm />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/login/:token" element={<LoginForm />} />    
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -61,12 +59,6 @@ const App = () => {
 
           {/* Exam Taker Overview */}
           <Route path="/exam-overview/:token" element={<ExamOverview />} />
-
-          {/* ← Added Scheduled / Completed Exam routes */}
-          <Route path="/exams/scheduled" element={<ScheduledExams />}
-          />
-          <Route path="/exams/completed" element={ <CompletedExams />}
-          />
         </Routes>
       </div>
     </Router>

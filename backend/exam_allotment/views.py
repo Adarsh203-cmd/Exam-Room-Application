@@ -91,8 +91,6 @@ class ExamCreationViewSet(viewsets.ModelViewSet):
             exam_url=f"http://localhost:5173/login/{token}"
         )
         return Response(ExamCreationSerializer(exam).data, status=status.HTTP_201_CREATED)
-
-
 class ExamDetailView(APIView):
     """ GET /api/exam_allotment/exams/{token}/questions/ """
     def get(self, request, token):
@@ -173,6 +171,8 @@ class CandidateSelectionView(APIView):
                 url_link=exam.exam_url,        # store the exam URL
                 invitation_sent_flag=True,
                 location=exam_location,        # ← set location on assignment
+                exam_start_time=exam.exam_start_time,   # ← store start time
+                exam_end_time=exam.exam_end_time        # ← store endtime
             )
 
             # Assign candidate details based on internal or external candidate

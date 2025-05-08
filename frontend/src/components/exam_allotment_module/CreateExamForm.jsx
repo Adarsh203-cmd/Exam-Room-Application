@@ -1,7 +1,7 @@
-// frontend/src/components/exam_allotment_module/CreateExamForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../../styles/exam_allotment_module_css/CreateExamForm.css';
 
 const CreateExamForm = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const CreateExamForm = () => {
     role_or_department: '',
     mcq_question_ids: [],
     fib_question_ids: [],
-     location: ''
+    location: ''
   });
 
   const [allSubjects, setAllSubjects] = useState([]);
@@ -134,26 +134,37 @@ const CreateExamForm = () => {
         <input name="location" placeholder="Location" required
           value={formData.location} onChange={handleInputChange}
           style={{ width:'100%', marginBottom:20 }} />
-          
-        <div style={{ marginBottom:20 }}><strong>Select Subjects:</strong>
+        
+        {/* ——— Select Subjects block with proper alignment ——— */}
+        <div className="subject-selection" style={{ marginBottom:20 }}>
+          <strong>Select Subjects:</strong>
           {allSubjects.map(subj => (
-            <div key={subj} style={{ display:'flex', alignItems:'center', marginBottom:8 }}>
-              <label style={{ flex:1 }}>
-                <input type="checkbox"
+            <div key={subj} className="subject-row">
+              <label className="subject-label">
+                <input
+                  type="checkbox"
                   checked={selectedSubjects.includes(subj)}
-                  onChange={()=>toggleSubject(subj)} /> {subj}
+                  onChange={()=>toggleSubject(subj)}
+                />
+                {subj}
               </label>
               {selectedSubjects.includes(subj) && (
-                <>
-                  <input type="number" min="0" placeholder="MCQ#"
+                <div className="subject-inputs">
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="MCQ#"
                     value={counts[subj]?.mcq||''}
                     onChange={e=>handleCountChange(subj,'mcq',e.target.value)}
-                    style={{ width:60, marginRight:4 }} />
-                  <input type="number" min="0" placeholder="FIB#"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="FIB#"
                     value={counts[subj]?.fib||''}
                     onChange={e=>handleCountChange(subj,'fib',e.target.value)}
-                    style={{ width:60 }} />
-                </>
+                  />
+                </div>
               )}
             </div>
           ))}
