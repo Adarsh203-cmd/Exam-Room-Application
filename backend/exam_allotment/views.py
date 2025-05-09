@@ -173,6 +173,8 @@ class CandidateSelectionView(APIView):
                 url_link=exam.exam_url,        # store the exam URL
                 invitation_sent_flag=True,
                 location=exam_location,        # ← set location on assignment
+                exam_start_time=exam.exam_start_time,
+                exam_end_time=exam.exam_end_time
             )
 
             # Assign candidate details based on internal or external candidate

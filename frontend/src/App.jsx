@@ -1,16 +1,20 @@
 // frontend/src/App.jsx
 import React from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
-import ExamOverview from './components/exam_taker_module/exam_overview';
 import CandidateProfileWrapper from './components/register_module/CandidateProfileWrapper';
 import Dashboard from './components/register_module/Dashboard';
 import EmployeeForm from './components/register_module/employeeform';
 import ForgotPassword from './components/register_module/forgotpassword';
 import LoginForm from './components/register_module/Login';
-import Navbar from './components/register_module/navbar';
+import CandidateProfileForm from './components/register_module/candidateprofileform';
 import OtpVerification from './components/register_module/otpverification';
+import CreateExam from './components/create_exam_module/CreateExam';
+import ExamScreen from './components/exam_taker_module/Examscreen';
+import Navbar from './components/register_module/navbar';
 import SignupForm from './components/register_module/signupform';
+import Report_Dashboard from './components/Dashboard_module/Report_Dashboard';
+
 
 // ProtectedRoute wrapper
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
@@ -23,23 +27,32 @@ import MCQCreatePage from './components/exam_content_module/MCQCreatePage';
 import CreateExamForm from './components/exam_allotment_module/CreateExamForm';
 import CandidateSelectionPage from './components/exam_allotment_module/CandidateSelectionPage';
 
-// Dashboard sub-pages (Scheduled / Completed)
-import ScheduledExams from './components/exam_allotment_module/ScheduledExams';
-import CompletedExams from './components/exam_allotment_module/CompletedExams';
 
-const App = () => {
+
+
+const AppContent = () => {
+  const location = useLocation();
+  const hideNavbarRoutes = ['/exam-overview', '/exam-window', '/exam-screen'];
+
   return (
-    <Router>
-      <Navbar />
-      <div style={{ marginLeft: '240px', padding: '20px' }}>
+    <>
+      {/* Navbar only visible on specified routes */}
+      {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
+
+      {/* Apply margin if Navbar is visible */}
+      <div style={!hideNavbarRoutes.includes(location.pathname) ? { marginLeft: '240px', padding: '20px' } : {}}>
         <Routes>
           {/* Public / Authentication */}
           <Route path="/" element={<LoginForm />} />
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/employee" element={<EmployeeForm />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/candidate-profile" element={<CandidateProfileForm />} />
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/create-exam" element={<CreateExam />} />
+          <Route path="/exam-screen" element={<ExamScreen />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Candidate Profile (protected) */}
           <Route
@@ -59,18 +72,31 @@ const App = () => {
           <Route path="/exams/create" element={<CreateExamForm />} />
           <Route path="/select-candidates/:examToken" element={<CandidateSelectionPage />} />
 
-          {/* Exam Taker Overview */}
-          <Route path="/exam-overview/:token" element={<ExamOverview />} />
+          {/* Report and Dashboard */}
+          <Route path="/report-dashboard" element={<Report_Dashboard />} />
 
-          {/* ← Added Scheduled / Completed Exam routes */}
-          <Route path="/exams/scheduled" element={<ScheduledExams />}
-          />
-          <Route path="/exams/completed" element={ <CompletedExams />}
+
+
+
+          {/* Fallback route for undefined paths */}
+          <Route
+            path="*"
+            element={
+              <div style={{ textAlign: 'center', padding: '80px' }}>
+                <h2 style={{ fontSize: '24px' }}>404 - Page Not Found</h2>
+              </div>
+            }
           />
         </Routes>
       </div>
-    </Router>
+    </>
   );
 };
+
+const App = () => (
+  <Router>
+    <AppContent />
+  </Router>
+);
 
 export default App;
