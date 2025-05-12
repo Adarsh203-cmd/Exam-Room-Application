@@ -20,6 +20,7 @@ from .serializers import (
 from exam_content.models import MCQQuestion, FillInTheBlankQuestion
 from exam_content.serializers import MCQQuestionSerializer, FillBlankQuestionSerializer
 from candidate_enrollment.models import InternalCandidate, ExternalCandidate
+from datetime import datetime
 
 
 # ----- Dynamic Subject & Question Endpoints -----
@@ -75,13 +76,23 @@ class ExamCreationViewSet(viewsets.ModelViewSet):
         missing = [f for f in required if f not in data]
         if missing:
             return Response({"error": f"Missing fields: {missing}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Parse datetime strings
+            start_time = datetime.fromisoformat(data['exam_start_time'])
+            end_time = datetime.fromisoformat(data['exam_end_time'])
+        except ValueError:
+            return Response(
+            {"error": "Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"},
+            status=status.HTTP_400_BAD_REQUEST
+            )     
 
         token = self.generate_exam_token()
         exam = exam_creation.objects.create(
             exam_title=data['exam_title'],
             instruction=data['instruction'],
-            exam_start_time=data['exam_start_time'],
-            exam_end_time=data['exam_end_time'],
+            exam_start_time=start_time,
+            exam_end_time=end_time,
             created_by=int(data['created_by']),
             role_or_department=data['role_or_department'],
             mcq_question_ids=data.get('mcq_question_ids', []),
@@ -144,6 +155,15 @@ class CandidateSelectionView(APIView):
         exam = get_object_or_404(exam_creation, exam_token=exam_token)
         exam_location = exam.location or ""    # ← capture location
 
+        # Fetch duration_minutes from ExamAssignment model (if applicable)
+        exam_assignment = ExamAssignment.objects.filter(exam=exam).first()
+        # If exam_assignment exists, use its duration. Otherwise, calculate the duration from exam times.
+        if exam_assignment:
+            duration_minutes = exam_assignment.duration_minutes
+        else:
+            # If no assignment, calculate duration from exam start and end times
+            duration_minutes = int((exam.exam_end_time - exam.exam_start_time).total_seconds() // 60)
+
         # Retrieve the internal and external candidates based on the selected user IDs
         interns = InternalCandidate.objects.filter(id__in=selected)
         externs = ExternalCandidate.objects.filter(id__in=selected)
@@ -172,7 +192,10 @@ class CandidateSelectionView(APIView):
                 exam_token=exam.exam_token,    # store the exam token
                 url_link=exam.exam_url,        # store the exam URL
                 invitation_sent_flag=True,
-                location=exam_location,        # ← set location on assignment
+                location=exam_location,  
+                exam_start_time=exam.exam_start_time,
+                exam_end_time=exam.exam_end_time,
+                duration_minutes=duration_minutes,      # ← set location on assignment
             )
 
             # Assign candidate details based on internal or external candidate

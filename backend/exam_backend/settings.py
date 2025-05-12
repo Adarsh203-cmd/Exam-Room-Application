@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "candidate_enrollment",
     "exam_content",
     "exam_allotment",
+    'exam_taker',
     'corsheaders',
 ]
 

@@ -57,6 +57,7 @@ class ExamAssignment(models.Model):
     # real columns—will be populated from the view
     exam_start_time = models.DateTimeField(null=True, blank=True)
     exam_end_time   = models.DateTimeField(null=True, blank=True)
+    duration_minutes = models.PositiveIntegerField(default=60)
 
     invitation_sent_flag = models.BooleanField(default=False)
     exam_token = models.CharField(max_length=100)
