@@ -1,0 +1,225 @@
+/* Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* 60%: Soft white/gray background */
+.admin-dashboard-bg {
+    min-height: 100vh;
+    width: 100vw;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Fixed Logout Button - Yellow Accent */
+.logout-btn {
+    position: fixed;
+    top: 18px;
+    right: 28px;
+    z-index: 100;
+    background: #F7C948;
+    color: #444444;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(60, 60, 60, 0.12);
+    transition: background 0.18s, color 0.18s;
+    padding: 0;
+}
+.logout-btn:hover {
+    background: #444444;
+    color: #F7C948;
+}
+
+/* Header with Logo and Company Name */
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 4vw 24px 4vw;
+    width: 100vw;
+    min-height: 100px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(60, 60, 60, 0.07);
+}
+
+.company-logo {
+    height: 90px;
+    width: 90px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: #f3f3f3;
+    box-shadow: 0 4px 16px rgba(60, 60, 60, 0.10);
+    border: 4px solid #F7C948;
+}
+
+.company-name {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 28px;
+    color: #434343;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 1.1;
+}
+
+.company-name .elogixa-main {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #434343;
+    letter-spacing: 1.5px;
+}
+
+.company-name .elogixa-sub {
+    font-size: 1.5rem;
+    color: #37B34A;
+    font-weight: 700;
+    margin-top: 6px;
+    letter-spacing: 0.7px;
+}
+
+/* Main Content */
+.dashboard-main {
+    width: 100%;
+    min-height: calc(100vh - 120px);
+    padding: 40px 5vw 30px 5vw;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+/* Card Grid */
+.dashboard-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px;
+    width: 100%;
+    margin-top: 36px;
+}
+
+/* Card Styles */
+.dashboard-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(60, 60, 60, 0.10);
+    padding: 32px 18px 26px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+    border-top: 5px solid #37B34A;
+    transition: box-shadow 0.2s, transform 0.2s, border-top 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 12px 30px rgba(247, 201, 72, 0.16), 0 2px 10px #37B34A22;
+    transform: translateY(-8px) scale(1.04);
+    border-top: 5px solid #F7C948;
+    background: #f8fafc;
+}
+
+.dashboard-card-icon {
+    font-size: 3.2rem;
+    color: #37B34A;
+    margin-bottom: 18px;
+    transition: color 0.2s;
+}
+
+.dashboard-card:hover .dashboard-card-icon {
+    color: #F7C948;
+}
+
+.dashboard-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #434343;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 1100px) {
+    .dashboard-card-grid {
+        gap: 22px;
+    }
+    .company-logo {
+        height: 64px;
+        width: 64px;
+    }
+    .company-name .elogixa-main {
+        font-size: 2.2rem;
+    }
+    .company-name .elogixa-sub {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-header {
+        padding: 16px 4vw 12px 4vw;
+        min-height: 80px;
+    }
+    .dashboard-main {
+        padding: 20px 3vw;
+    }
+    .dashboard-card-grid {
+        gap: 16px;
+    }
+    .dashboard-card {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-header {
+        padding: 10px 3vw 8px 3vw;
+        min-height: 60px;
+    }
+    .company-logo {
+        height: 40px;
+        width: 40px;
+        border-width: 2px;
+    }
+    .company-name {
+        margin-left: 10px;
+    }
+    .company-name .elogixa-main {
+        font-size: 1.3rem;
+    }
+    .company-name .elogixa-sub {
+        font-size: 0.8rem;
+    }
+    .dashboard-card {
+        padding: 12px;
+        min-width: 120px;
+        max-width: 100%;
+    }
+    .dashboard-card-title {
+        font-size: 1rem;
+    }
+    .logout-btn {
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+}

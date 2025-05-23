@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   PieChart,
   Pie,
@@ -16,50 +17,12 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import '../../styles/Dashboard_module_css/Dashboard.css';
 
-// Sample Data for Success Rate and Exam Reports
-const successData = [
-  { name: 'Success', value: 75 },
-  { name: 'Failure', value: 25 },
-];
-const COLORS = ['#38A169', '#E53E3E'];
-
+// Sample Data for Exam Reports (keep as is)
 const examReports = [
-  {
-    id: 1,
-    name: 'React Basics Exam',
-    date: '2025-04-20',
-    cutOff: 50,
-    candidates: [
-      { name: 'Alice', score: 78, aptitude: 22, reasoning: 28, networks: 28 },
-      { name: 'Bob', score: 45, aptitude: 15, reasoning: 10, networks: 20 },
-      { name: 'Charlie', score: 60, aptitude: 20, reasoning: 20, networks: 20 },
-      { name: 'David', score: 30, aptitude: 10, reasoning: 5, networks: 15 },
-      { name: 'Eva', score: 55, aptitude: 18, reasoning: 17, networks: 20 },
-      { name: 'Frank', score: 35, aptitude: 12, reasoning: 8, networks: 15 },
-      { name: 'Grace', score: 48, aptitude: 16, reasoning: 12, networks: 20 },
-      { name: 'Helen', score: 20, aptitude: 5, reasoning: 5, networks: 10 },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Java Fundamentals Exam',
-    date: '2025-04-22',
-    cutOff: 40,
-    candidates: [
-      { name: 'Eva', score: 55, aptitude: 18, reasoning: 17, networks: 20 },
-      { name: 'Frank', score: 35, aptitude: 12, reasoning: 8, networks: 15 },
-      { name: 'Grace', score: 48, aptitude: 16, reasoning: 12, networks: 20 },
-      { name: 'Helen', score: 20, aptitude: 5, reasoning: 5, networks: 10 },
-      { name: 'Alice', score: 78, aptitude: 22, reasoning: 28, networks: 28 },
-      { name: 'Bob', score: 45, aptitude: 15, reasoning: 10, networks: 20 },
-      { name: 'Charlie', score: 60, aptitude: 20, reasoning: 20, networks: 20 },
-      { name: 'David', score: 30, aptitude: 10, reasoning: 5, networks: 15 },
-    ],
-  },
+  // ... your sample data ...
 ];
 
 function isPass(candidate, cutOff) {
-  // Pass only if total and all sections >= cutOff
   return (
     candidate.score >= cutOff &&
     candidate.aptitude >= cutOff &&
@@ -68,58 +31,68 @@ function isPass(candidate, cutOff) {
   );
 }
 
+const COLORS = ['#38A169', '#E53E3E'];
+
 const Report_Dashboard = () => {
+  // Dashboard state
+  const [totalExams, setTotalExams] = useState(0);
+  const [upcomingExams, setUpcomingExams] = useState([]);
+  const [successRate, setSuccessRate] = useState('0%');
+  const [showUpcomingModal, setShowUpcomingModal] = useState(false);
+
+  // Reporting state
   const [popupData, setPopupData] = useState(null);
   const [selectedExam, setSelectedExam] = useState(null);
   const [customCutOff, setCustomCutOff] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const handlePopup = (type) => {
-    switch (type) {
-      case 'success':
-        setPopupData({
-          title: 'Success Rate Details',
-          content: (
-            <>
-              <p>Internal Avg: 78%</p>
-              <p>External Avg: 72%</p>
-            </>
-          ),
-        });
-        break;
-      case 'examStats':
-        setPopupData({
-          title: 'Exam Stats',
-          content: (
-            <>
-              <p>Internal Completed: 120</p>
-              <p>External Completed: 90</p>
-            </>
-          ),
-        });
-        break;
-      case 'upcoming':
-        setPopupData({
-          title: 'Upcoming Exams',
-          content: (
-            <>
-              <p>Internal Upcoming: 12</p>
-              <p>External Upcoming: 15</p>
-            </>
-          ),
-        });
-        break;
-      default:
-        break;
-    }
-  };
+  // Assigned people modal state
+  const [showAssignedModal, setShowAssignedModal] = useState(false);
+  const [assignedUsers, setAssignedUsers] = useState([]);
+  const [loadingAssigned, setLoadingAssigned] = useState(false);
+  const [assignedError, setAssignedError] = useState(null);
+
+    // All exams for "View Assignments" integration
+    const [allExams, setAllExams] = useState([]);
+    const [loadingAllExams, setLoadingAllExams] = useState(false);
+    const [allExamsError, setAllExamsError] = useState(null);
+
+  // Fetch dashboard stats from API
+  useEffect(() => {
+    axios.get("http://localhost:8000/api/dashboard/total-upcomingexams/")
+      .then(response => {
+        const data = response.data;
+        setTotalExams(data.total_exams_count);
+        setUpcomingExams(data.upcoming_exam_details || []);
+        setSuccessRate(data.success_rate || '0%');
+      })
+      .catch(error => {
+        console.error("API fetch error:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    setLoadingAllExams(true);
+    fetch('/api/dashboard/exams/')
+      .then((res) => res.json())
+      .then((data) => {
+        // If your API returns {exams: [...]}, use data.exams; else use data directly
+        setAllExams(data.exams || data);
+        setLoadingAllExams(false);
+      })
+      .catch((err) => {
+        setAllExamsError('Failed to load exams.');
+        setLoadingAllExams(false);
+      });
+  }, []);
 
   const closeModal = () => {
     setPopupData(null);
     setSelectedExam(null);
     setCustomCutOff(null);
     setSelectedCandidate(null);
+    setShowUpcomingModal(false);
   };
 
   const sortedReports = [...examReports].sort((a, b) =>
@@ -205,7 +178,6 @@ const Report_Dashboard = () => {
       if (aStatus !== bStatus) return bStatus - aStatus;
       return b.score - a.score;
     });
-
     return (
       <table
         style={{
@@ -258,51 +230,191 @@ const Report_Dashboard = () => {
     );
   };
 
+  // Assigned Users Modal Logic
+  const [selectedExamId, setSelectedExamId] = useState(null);
+
+  const handleExamRowClick = async (examId) => {
+    setSelectedExamId(examId);
+    setShowAssignedModal(true);
+    setLoadingAssigned(true);
+    setAssignedError(null);
+    try {
+      const resp = await axios.get(`/api/dashboard/assignments/exam/${examId}/`);
+      setAssignedUsers(resp.data);
+    } catch (err) {
+      setAssignedError("Failed to load assigned users.");
+      setAssignedUsers([]);
+    }
+    setLoadingAssigned(false);
+  };
+
+  const closeAssignedModal = () => {
+    setShowAssignedModal(false);
+    setAssignedUsers([]);
+    setSelectedExamId(null);
+    setAssignedError(null);
+  };
+
   return (
     <div className="dashboard-container">
       <h1 className="dashboard-title">Dashboard</h1>
 
       <div className="card-grid">
-        <div className="card" onClick={() => handlePopup('success')}>
+        {/* Success Rate Card */}
+        <div className="card">
           <h2>Success Rate</h2>
-          <div className="pie-chart-container">
-            <PieChart width={200} height={200}>
-              <Pie
-                data={successData}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={60}
-                paddingAngle={5}
-                dataKey="value"
-                label
-              >
-                {successData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </div>
+          <div className="stat-number" style={{ fontSize: '2.4rem', margin: '24px 0' }}>{successRate}</div>
         </div>
 
-        <div className="card" onClick={() => handlePopup('examStats')}>
+        {/* Total Exams Card */}
+        <div className="card">
           <div className="stat">
             <p className="stat-label">Total Exams</p>
-            <p className="stat-number">210</p>
+            <p className="stat-number">{totalExams}</p>
           </div>
-          <p className="card-subtext">Click for breakdown</p>
+          <p className="card-subtext">Fetched from API</p>
         </div>
 
-        <div className="card" onClick={() => handlePopup('upcoming')}>
+        {/* Upcoming Exams Card */}
+        <div className="card" onClick={() => setShowUpcomingModal(true)}>
           <div className="stat">
             <p className="stat-label">Upcoming Exams</p>
-            <p className="stat-number">27</p>
+            <p className="stat-number">{upcomingExams.length}</p>
           </div>
           <p className="card-subtext">Click for details</p>
         </div>
       </div>
+
+      {/* Upcoming Exams Modal */}
+      {showUpcomingModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>Upcoming Exam Details</h2>
+            {upcomingExams.length === 0 ? (
+              <p>No upcoming exams.</p>
+            ) : (
+              <table className="upcoming-exams-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Venue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upcomingExams.map((exam, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx % 2 === 0 ? 'even-row' : 'odd-row'}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleExamRowClick(exam.exam_id)}
+                      title="Show assigned people"
+                    >
+                      <td>{exam.exam_title || '-'}</td>
+                      <td>
+                        {exam.exam_start_time
+                          ? new Date(exam.exam_start_time).toLocaleDateString()
+                          : '-'}
+                      </td>
+                      <td>
+                        {exam.exam_start_time
+                          ? new Date(exam.exam_start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : '-'}
+                        {" - "}
+                        {exam.exam_end_time
+                          ? new Date(exam.exam_end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : '-'}
+                      </td>
+                      <td>{exam.location || '-'}</td>
+                      <td>
+                        <button onClick={() => handleExamRowClick(exam.id)}>
+                          View Assignments
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <button className="modal-back-button" onClick={closeModal}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+            {/* All Exams Table for Assignments */}
+            <h2>Exam Dashboard</h2>
+      {loadingAllExams ? (
+        <p>Loading exams...</p>
+      ) : allExamsError ? (
+        <p style={{ color: 'red' }}>{allExamsError}</p>
+      ) : (
+        <table border="1" cellPadding="10" style={{ marginBottom: '20px', width: '100%' }}>
+          <thead>
+            <tr>
+              <th>Exam ID</th>
+              <th>Exam Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allExams.map((exam) => (
+              <tr key={exam.id}>
+                <td>{exam.id}</td>
+                <td>{exam.exam_title || exam.name}</td>
+                <td>
+                  <button onClick={() => handleExamRowClick(exam.id)}>
+                    View Assignments
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+
+      {/* Assigned Users Modal */}
+      {showAssignedModal && (
+        <div className="modal-overlay" onClick={closeAssignedModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>Assigned People</h2>
+            {loadingAssigned ? (
+              <p>Loading...</p>
+            ) : assignedError ? (
+              <p style={{ color: 'red' }}>{assignedError}</p>
+            ) : assignedUsers.length === 0 ? (
+              <p>No users assigned to this exam.</p>
+            ) : (
+              <table className="assigned-users-table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Location</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignedUsers.map(user => (
+                    <tr key={user.assignment_id}>
+                      <td>{user.user_id}</td>
+                      <td>{user.first_name} {user.last_name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.location || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <button className="modal-back-button" onClick={closeAssignedModal} style={{marginTop: '20px'}}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       <h1 className="dashboard-title">Reporting</h1>
       <div className="report-filters">
@@ -429,7 +541,6 @@ const Report_Dashboard = () => {
                     )}
                   </div>
                 </div>
-
                 <CandidateTable
                   exam={selectedExam}
                   cutOff={customCutOff !== null ? customCutOff : selectedExam.cutOff}

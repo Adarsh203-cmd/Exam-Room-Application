@@ -34,6 +34,8 @@ const Navbar = () => {
         <Link to="/mcq-create">mcq page</Link>  
         <Link to="/fill-create">Fill blank page</Link>   
         <Link to="/report-dashboard">Report and Dashboard</Link>
+        <Link to="/first-page">registration</Link>  
+        <Link to="/admin-dash">Navigations</Link>
 
       
       </div>

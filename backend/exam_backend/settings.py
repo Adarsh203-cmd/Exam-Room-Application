@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "exam_content",
     "exam_allotment",
     'corsheaders',
+    'Dashboard_module',
 ]
 
 MIDDLEWARE = [
@@ -116,7 +117,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "exam_room",  # from SELECT current_database();
         "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "Denis26#",  # the one you set or just set
+        "PASSWORD": "hellosql",  # the one you set or just set
         "HOST": "localhost",
         "PORT": "5432",
     }

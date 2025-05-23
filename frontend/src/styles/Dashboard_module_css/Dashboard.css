@@ -186,6 +186,40 @@
   overflow-x: auto;
 }
 
+.upcoming-exams-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.upcoming-exams-table th,
+.upcoming-exams-table td {
+  border: 1px solid #333;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.upcoming-exams-table th {
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+}
+
+.upcoming-exams-table tbody tr.even-row {
+  background-color: #f9f9f9;
+}
+
+.upcoming-exams-table tbody tr.odd-row {
+  background-color: #ffffff;
+}
+
+.upcoming-exams-table tbody tr:hover {
+  background-color: #d0e7ff;
+  cursor: default;
+}
+
+
 /* Responsive Typography */
 @media (max-width: 1400px) {
   /* Adjust card width */
