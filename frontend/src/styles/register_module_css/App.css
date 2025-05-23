@@ -1,10 +1,11 @@
-/* Wrapper to center the form on the screen */
-.signup-wrapper {
+/* 60%: Main background */
+body, .signup-wrapper {
+  background-color:  #fff;; /* soft white/gray */
+  min-height: 100vh;
+  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f2f2f2;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -14,12 +15,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 30px;
+  gap: 10px;
   width: 800px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  padding: 24px;
+  background-color: #fff; /* white card */
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(60, 60, 60, 0.10);
+  border-top: 6px solid #37B34A; /* 30% green accent */
   box-sizing: border-box;
 }
 
@@ -32,45 +35,48 @@
 .signup-text h1 {
   font-size: 32px;
   margin-bottom: 10px;
+  color: #434343; /* dark gray */
 }
 
 .signup-text span {
-  color: #ff6600;
+  color: #F7C948; /* 10% yellow accent */
 }
 
 .signup-text p {
   font-size: 16px;
-  line-height: 1.8;         /* More breathing room between lines */
-  letter-spacing: 0.3px;    /* Slight spacing between letters */
+  line-height: 1.8;
+  letter-spacing: 0.3px;
   color: #444;
-  margin-bottom: 16px;      /* Space between multiple paragraphs */
+  margin-bottom: 16px;
 }
 
 /* Right side form */
 .signup-form {
   flex: none;
   width: 600px;
-  background-color: #fdfdfd;
-  padding: 30px;
-  border-radius: 8px;
-  border: 2px solid #ccc;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  background-color: #f8fafc; /* match main bg for subtlety */
+  padding: 32px;
+  border-radius: 10px;
+  border: 2px solid #F7C948; /* yellow accent */
+  box-shadow: 0 0 8px rgba(55, 179, 74, 0.08);
 }
 
 /* Form structure */
 .signup-form form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
 }
 
 /* Input and textarea styles */
 textarea, input, select {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #aaa;
-  border-radius: 5px;
+  border-radius: 6px;
   width: 100%;
   box-sizing: border-box;
+  font-size: 1rem;
+  background: #fff;
 }
 
 textarea {
@@ -83,13 +89,13 @@ textarea {
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
   position: relative;
 }
 
 .input-row label {
   flex: 0 0 150px;
   font-weight: 500;
+ 
 }
 
 .input-row input,
@@ -111,19 +117,16 @@ textarea {
 
 /* Error message */
 .error-message {
-  color: red;
+  color: #e53935;
   font-size: 12px;
-  margin-top: 5px;
-  display: none;
-  width: 100%;
-}
-
-.input-row input.error {
-  border-color: red;
-}
-
-.input-row input.error + .error-message {
+  min-height: 16px;
+  margin-top: 4px;
+  transition: color 0.2s;
   display: block;
+}
+
+input.error, textarea.error, select.error {
+  border: 1.5px solid #e53935 !important;
 }
 
 /* Radio buttons */
@@ -140,29 +143,235 @@ textarea {
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 14px;
-  color: #0077cc;
+  color: #37B34A;
 }
 
 /* Submit button */
 button,
 button[type="submit"] {
   width: 100%;
-  padding: 12px;
-  background-color: #0077cc;
-  color: white;
+  padding: 14px;
+  background-color: #37B34A; /* green accent */
+  color: #fff;
   border: none;
-  border-radius: 5px;
-  font-size: 16px;
+  border-radius: 6px;
+  font-size: 1.1rem;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 12px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
 }
 
 button[type="submit"]:hover {
-  background-color: #005fa3;
+  background-color: #F7C948; /* yellow accent */
+  color: #434343; /* dark gray for contrast */
 }
 
 /* Optional outlined form reuse class */
 .outlined-form {
-  border: 2px solid #ccc;
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  border: 2px solid #F7C948;
+  box-shadow: 0 0 8px rgba(55, 179, 74, 0.08);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .signup-container {
+    flex-direction: column;
+    width: 98vw;
+    padding: 12px;
+  }
+  .signup-form {
+    width: 100%;
+    padding: 16px;
+  }
+  .signup-text {
+    padding-right: 0;
+    margin-bottom: 18px;
+  }
+}
+
+/* Wrapper centers everything on the screen */
+.elogixa-signup-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main container: wider, modern, shadow */
+.elogixa-signup-container {
+  display: flex;
+  width: 1050px;
+  min-height: 540px;
+  column-gap: 12px; /* Controls horizontal gap */
+  row-gap: 0;       /* Controls vertical gap if wrapping */
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 32px rgba(60,60,60,0.10);
+  overflow: hidden;
+}
+
+/* Left: Welcome + tagline */
+.elogixa-signup-left {
+  flex: 1;
+  background: linear-gradient(135deg, #f8fafc 60%, #f7c948 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;      /* align items to the left */
+  justify-content: flex-start;  /* align items to the top */
+  padding: 36px 36px 48px 36px; /* top, right, bottom, left */
+  min-width: 340px;
+  position: relative;
+}
+
+.elogixa-logo {
+  position: absolute; /* remove from normal flow */
+  top: 16px;          /* distance from top */
+  left: 16px;         /* distance from left */
+  width: 180px;       /* bigger logo */
+  height: auto;
+  margin: 0;          /* reset margins */
+  object-fit: contain;
+  z-index: 10;        /* ensure it stays on top */
+}
+
+.elogixa-welcome-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertical center */
+  align-items: center;     /* horizontal center */
+  text-align: center;
+        /* ensures vertical centering if parent has no height */
+ 
+}
+
+
+.elogixa-signup-left h1 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #434343;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.elogixa-company {
+  color:   #f7c948;
+  font-weight: 900;
+  font-size: 2.2rem;
+}
+
+.elogixa-tagline {
+  font-size: 1.2rem;
+  color: #34a853;;
+  margin-top: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Right: Form */
+.elogixa-signup-right {
+  flex: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px;
+  background: #fff;
+}
+
+.signup-form {
+  width: 100%;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1.5px solid #f7c948;
+  box-shadow: 0 0 8px rgba(60,60,60,0.06);
+  padding: 32px 28px;
+}
+
+.signup-form h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #434343;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.signup-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Responsive for mobile */
+@media (max-width: 900px) {
+  .elogixa-signup-container {
+    flex-direction: column;
+    width: 98vw;
+    min-height: 0;
+  }
+  .elogixa-signup-left, .elogixa-signup-right {
+    padding: 24px 12px;
+    min-width: 0;
+  }
+  .signup-form {
+    max-width: 100%;
+    padding: 18px 8px;
+  }
+}
+
+
+.floating-label-group {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.floating-label-input {
+  width: 100%;
+  padding: 16px 12px 8px 12px;
+  font-size: 1rem;
+  border: 1.5px solid #aaa;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.floating-label-input:focus {
+  border-color: #37B34A;
+}
+
+.floating-label {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  background: #fff;
+  color: #888;
+  font-size: 1rem;
+  padding: 0 4px;
+  pointer-events: none;
+  transition: 0.2s;
+  border-radius: 4px;
+}
+
+.floating-label-input:focus + .floating-label,
+.floating-label-input:not(:placeholder-shown) + .floating-label,
+.floating-label-input:valid + .floating-label {
+  top: -10px;
+  left: 8px;
+  font-size: 0.85rem;
+  color: #37B34A;
+  background: #fff;
+  padding: 0 4px;
+}
+
+/* For select, always float label */
+.floating-label-group select.floating-label-input + .floating-label {
+  top: -10px;
+  left: 8px;
+  font-size: 0.85rem;
+  color: #37B34A;
+  background: #fff;
+  padding: 0 4px;
 }

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'exam_taker',
     'exam_evaluation',
     'corsheaders',
+    'Dashboard_module',
 ]
 
 MIDDLEWARE = [

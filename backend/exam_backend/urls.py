@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/exam_content/", include("exam_content.urls")),
     path("api/exam-view/", include("exam_taker.urls")),
     path('api/evaluation/', include('exam_evaluation.urls')),
+    path('api/dashboard/', include('Dashboard_module.urls')),
 
     # Remove this wrong line: path("api/exam/", include("exam_allotment.urls")),
 

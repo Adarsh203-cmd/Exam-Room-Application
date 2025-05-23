@@ -27,6 +27,10 @@ const OTPVerification = () => {
       user_type: storedData.user_type,
     };
 
+    
+
+    console.log('Sending Payload:', payload); 
+
     try {
       setLoading(true);
       const res = await axios.post("http://127.0.0.1:8000/api/candidate/verify-otp-register/", payload);
