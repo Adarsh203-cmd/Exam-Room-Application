@@ -15,7 +15,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sidebar">
+    <nav className="sidebar"style={{ width: '180px' }}>
       <h2 className="logo">Elogixa</h2>
       <div className="nav-links">
         <Link to="/employee">Internal Registration</Link>
@@ -26,6 +26,8 @@ const Navbar = () => {
 
         <Link to="/mcq-create">mcq page</Link>  
         <Link to="/fill-create">Fill blank page</Link> 
+        <Link to="/ExamScreen">Exam screen</Link>
+        <Link to="/Result">Exam Report</Link>
 
         {/* Exam Dashboard with dropdown */}
         <div className="dropdown">

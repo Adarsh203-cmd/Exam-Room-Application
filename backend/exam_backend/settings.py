@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "exam_content",
     "exam_allotment",
     'exam_taker',
+    'exam_evaluation',
     'corsheaders',
 ]
 

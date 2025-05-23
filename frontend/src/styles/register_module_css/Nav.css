@@ -1,10 +1,10 @@
 /* src/styles/navbar.css */
 .sidebar {
-    position: fixed;
+    position:fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 220px;
+    width: 80px;
     height: 100vh;
     background-color: #202123;
     color: white;

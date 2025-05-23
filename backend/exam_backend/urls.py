@@ -8,9 +8,10 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/candidate/", include("candidate_enrollment.urls")),
-    path('api/exam_allotment/', include('exam_allotment.urls')),  # ✅ Only this
+    path('api/exam_allotment/', include('exam_allotment.urls')), 
     path("api/exam_content/", include("exam_content.urls")),
     path("api/exam-view/", include("exam_taker.urls")),
+    path('api/evaluation/', include('exam_evaluation.urls')),
 
     # Remove this wrong line: path("api/exam/", include("exam_allotment.urls")),
 

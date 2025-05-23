@@ -1,0 +1,278 @@
+/* Dashboard Container */
+.dashboard-container {
+  padding: 20px;
+  overflow-x: auto;
+}
+ 
+/* Dashboard Title */
+.dashboard-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+ 
+/* Card Grid Layout */
+.card-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+ 
+/* Card Styling */
+.card {
+  flex: 0 0 auto;
+  width: 300px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  cursor: pointer;
+  background-color: #fff;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+ 
+/* Hover Effect for Cards */
+.card:hover {
+  transform: translateY(-5px);
+}
+ 
+/* Stat Styling */
+.stat {
+  margin-bottom: 10px;
+}
+ 
+.stat-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 15px;
+}
+ 
+.stat-number {
+  font-size: 60px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 20px;
+}
+ 
+/* Pie Chart Container */
+.pie-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+ 
+/* Pie Chart Size */
+.pie-chart {
+  width: 180px;
+  height: 180px;
+}
+ 
+/* Card Subtext */
+.card-subtext {
+  color: gray;
+  font-size: 14px;
+  margin-top: 10px;
+}
+ 
+/* Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+ 
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 700px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 1000;
+  margin: 10px; /* Ensuring there's space around the modal */
+  box-sizing: border-box;
+}
+ 
+/* Close Button for Modal */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+ 
+/* Modal Body Text */
+.modal-body p {
+  margin-bottom: 10px;
+}
+ 
+/* Back Button in Modal */
+.modal-back-button {
+  width: 100%;
+  padding: 12px 0;
+  margin-top: 20px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+ 
+.download-button {
+  width: 100%;
+  padding: 12px 0;
+  margin-top: 20px;
+  background-color: #00cc47;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+ 
+.modal-back-button:hover {
+  background-color: #0056b3;
+}
+ 
+/* Report Filters */
+.report-filters {
+  margin: 20px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+ 
+/* Score Table Styling */
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  min-width: 600px;
+}
+ 
+.score-table th, .score-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+ 
+/* Table Responsive Wrapper */
+.table-responsive {
+  overflow-x: auto;
+}
+ 
+/* Responsive Typography */
+@media (max-width: 1400px) {
+  /* Adjust card width */
+  .card {
+    width: 45%; /* Two cards per row */
+  }
+  /* Adjust card grid layout */
+  .card-grid {
+    gap: 10px;
+  }
+}
+ 
+/* Medium Devices (Tablets, below 768px) */
+@media (max-width: 768px) {
+  .dashboard-title {
+    font-size: 24px;
+  }
+ 
+  .stat-label {
+    font-size: 16px;
+  }
+ 
+  .stat-number {
+    font-size: 40px;
+  }
+ 
+  .card {
+    width: 90%;
+  }
+ 
+  .pie-chart {
+    width: 120px;
+    height: 120px;
+  }
+}
+ 
+/* Extra Small Devices (below 480px) */
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+ 
+  .report-filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+ 
+  .card-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+ 
+  /* Ensure dashboard and reporting titles don't shrink under sidebar */
+  .dashboard-title, .report-title {
+    margin-left: 20px; /* Keep space from sidebar */
+  }
+}
+ 
+/* For screens smaller than 1000px - Fixing the modal */
+@media (max-width: 1000px) {
+  /* Ensure modal stays centered and does not overlap with navbar or sidebar */
+  .modal-content {
+    width: 90%; /* Make modal width smaller */
+    max-width: 600px; /* Set a max-width */
+    margin: 20px; /* Ensure it has space from edges */
+  }
+ 
+  /* Adjust modal overlay to be responsive */
+  .modal-overlay {
+    padding: 10px; /* Add padding around the modal to ensure it doesn't touch the edges */
+  }
+}
+/* For screens smaller than 1300px - Fixing the modal */
+/* For screens smaller than 1300px - Centering or slightly right-aligned modal */
+@media (max-width: 1300px) {
+  /* Adjust modal width and positioning for screens below 1300px */
+  .modal-content {
+    width: 70%; /* Adjust to 70% width to avoid overlap with sidebar */
+    max-width: 600px; /* Set a max-width to prevent it from becoming too wide */
+    margin: 20px auto; /* Center the modal horizontally */
+    margin-left: 30%; /* Optional slight shift to the right */
+  }
+ 
+  /* Adjust modal overlay to be responsive */
+  .modal-overlay {
+    padding: 10px; /* Add padding around the modal to ensure it doesn't touch the edges */
+  }
+}
+ 
