@@ -10,6 +10,8 @@ urlpatterns = [
     path("api/candidate/", include("candidate_enrollment.urls")),
     path('api/exam_allotment/', include('exam_allotment.urls')),  # ✅ Only this
     path("api/exam_content/", include("exam_content.urls")),
+    path('api/dashboard/', include('Dashboard_module.urls')),
+        
 
     # Remove this wrong line: path("api/exam/", include("exam_allotment.urls")),
 

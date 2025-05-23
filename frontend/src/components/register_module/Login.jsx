@@ -44,7 +44,7 @@ const LoginForm = () => {
           navigate('/dashboard');
         } else {
           alert("Candidate login successful!");
-          navigate('/candidate-profile'); // adjust route as needed
+          navigate(`/candidate-profile/${userID}`); // adjust route as needed
         }
       }
     } catch (error) {
@@ -55,61 +55,91 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="signup-container">
-      <div className="signup-text">
-        <h1>
-          Welcome to <br />
-          <span>Elogixa Technology India Pvt Ltd</span>
-        </h1>
+  <div className="elogixa-signup-wrapper">
+    <div className="elogixa-signup-container">
+      <div className="elogixa-signup-left">
+        <img src="/src/assets/elogixa_logo1.png" alt="Elogixa Logo" className="elogixa-logo" />
+        <div className="elogixa-welcome-center">
+          <h1>
+            Welcome to <br />
+            <span className="elogixa-company">Elogixa Technology India Pvt Ltd</span>
+          </h1>
+          <div className="elogixa-tagline">
+            Your trusted partner in technology solutions.
+          </div>
+        </div>
       </div>
 
-      <div className="signup-form outlined-form">
-        <h2>Login to your Account</h2>
-        <form onSubmit={handleLogin}>
-          <select
-            value={loginType}
-            onChange={(e) => setLoginType(e.target.value)}
-            style={{ marginBottom: '10px', padding: '8px', borderRadius: '5px' }}
-          >
-            <option value="candidate">Candidate</option>
-            <option value="admin">Admin</option>
-          </select>
+      <div className="elogixa-signup-right">
+        <div className="signup-form outlined-form">
+          <h2>Login to your Account</h2>
+          <form onSubmit={handleLogin}>
+            {/* Floating label select */}
+            <div className="floating-label-group">
+              <select
+                id="loginType"
+                value={loginType}
+                onChange={(e) => setLoginType(e.target.value)}
+                required
+                className="floating-label-input"
+              >
+                <option value="candidate">Candidate</option>
+                <option value="admin">Admin</option>
+              </select>
+              <label htmlFor="loginType" className="floating-label">Login as</label>
+            </div>
 
-          <input
-            type="text"
-            placeholder={loginType === "admin" ? "Admin Email" : "User ID"}
-            value={userID}
-            onChange={(e) => setUserID(e.target.value)}
-            required
-          />
+            {/* Floating label input for User ID / Email */}
+            <div className="floating-label-group">
+              <input
+                id="userID"
+                type="text"
+                value={userID}
+                onChange={(e) => setUserID(e.target.value)}
+                required
+                className="floating-label-input"
+                placeholder=" "
+              />
+              <label htmlFor="userID" className="floating-label">
+                {loginType === "admin" ? "Admin Email" : "User ID"}
+              </label>
+            </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+            {/* Floating label input for Password */}
+            <div className="floating-label-group">
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="floating-label-input"
+                placeholder=" "
+              />
+              <label htmlFor="password" className="floating-label">Password</label>
+            </div>
 
-          <div className="forgot-password-container">
-            <span
-              className="forgot-password-link"
-              onClick={() => navigate('/forgot-password')}
-            >
-              Forgot Password?
-            </span>
-          </div>
+            <div className="forgot-password-container">
+              <span
+                className="forgot-password-link"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Forgot Password?
+              </span>
+            </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <ThreeDots color="#00BFFF" height={50} width={50} />
-            ) : (
-              'Login'
-            )}
-          </button>
-        </form>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <ThreeDots color="#00BFFF" height={50} width={50} />
+              ) : (
+                'Login'
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
+  </div>    
   );
 };
 

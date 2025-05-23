@@ -92,8 +92,9 @@ const ForgotPassword = () => {
   };
 
   return (
+  <div className="elogixa-signup-wrapper">
     <div className="signup-container">
-      <div className="signup-text">
+      <div className="elogixa-signup-left">
         <h1>
           Forgot Your <br />
           <span>Password?</span>
@@ -101,17 +102,23 @@ const ForgotPassword = () => {
         <p>Please follow the steps to reset your password securely.</p>
       </div>
 
-      <div className="signup-form outlined-form">
-        <h2>Reset Password</h2>
+      <div className="elogixa-signup-right ">
+        
         <form onSubmit={handleSubmit}>
+        <div className="floating-label-group">
           <input
             type="email"
-            placeholder="Enter your email"
+            id="reset-email"
+            className="floating-label-input"
+            placeholder=" "
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={showOtpFields}
+            autoComplete="email"
           />
+            <label htmlFor="reset-email" className="floating-label">Enter your email</label>
+        </div>  
 
           {showOtpFields && (
             <>
@@ -183,6 +190,7 @@ const ForgotPassword = () => {
         </form>
       </div>
     </div>
+  </div>    
   );
 };
 

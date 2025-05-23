@@ -23,23 +23,21 @@ const Navbar = () => {
         <Link to="/candidate-profile">Manage Profile</Link>
         <Link to="/exam-overview">Exam Overview</Link>
         <Link to="/login">Login</Link>
+        <Link to="/exam-overview">Examoverview</Link>
+        <Link to="/exam-window">Examoverview</Link>
+        <Link to="/create-exam">Create Exam</Link>
+        <Link to="/exam-screen">ExamScreen</Link>
+        <Link to="/Dashboard">Dashboard</Link>
+        
+        <Link to="/exams/create">Create Exam</Link>
 
         <Link to="/mcq-create">mcq page</Link>  
-        <Link to="/fill-create">Fill blank page</Link> 
+        <Link to="/fill-create">Fill blank page</Link>   
+        <Link to="/report-dashboard">Report and Dashboard</Link>
+        <Link to="/first-page">registration</Link>  
+        <Link to="/admin-dash">Navigations</Link>
 
-        {/* Exam Dashboard with dropdown */}
-        <div className="dropdown">
-          <span className="dropdown-toggle" onClick={() => setShowExamLinks(!showExamLinks)}>
-            Exam Management ▼
-          </span>
-          {showExamLinks && (
-            <div className="dropdown-links">
-              <Link to="/exams/create">Create Exam</Link>
-              <Link to="/exams/scheduled">Scheduled Exams</Link>
-              <Link to="/exams/completed">Completed Exams</Link>
-            </div>
-          )}
-        </div>
+      
       </div>
 
       <button className="logout-button" onClick={handleLogout}>
