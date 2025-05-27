@@ -51,6 +51,7 @@ class ExamAssignment(models.Model):
     email = models.EmailField()
 
     password = models.CharField(max_length=128)
+    duration_minutes = models.PositiveIntegerField(null=True, blank=True)
 
     location = models.CharField(max_length=255, blank=True, null=True)
     url_link = models.CharField(max_length=500)
