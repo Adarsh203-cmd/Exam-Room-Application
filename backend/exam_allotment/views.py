@@ -184,6 +184,8 @@ class CandidateSelectionView(APIView):
             msg.attach_alternative(html_content, "text/html")
             msg.send(fail_silently=False)
 
+            duration_minutes = int((exam.exam_end_time - exam.exam_start_time).total_seconds() / 60)
+
             # Create assignment record
             assignment = ExamAssignment(
                 exam_token=exam.exam_token,
@@ -192,6 +194,7 @@ class CandidateSelectionView(APIView):
                 location=exam_location,
                 exam_start_time=exam.exam_start_time,
                 exam_end_time=exam.exam_end_time,
+                duration_minutes=duration_minutes,
                 user_id=c.user_id,
                 first_name=c.first_name,
                 last_name=c.last_name,
