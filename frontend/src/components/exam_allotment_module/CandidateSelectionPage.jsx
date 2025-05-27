@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // <-- Import useParams
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import '../../styles/exam_allotment_module_css/CandidateSelectionPage.css';
 
 const CandidateSelectionPage = () => {
-  const { examToken } = useParams(); // <-- Get exam_token dynamically from URL
-
+  const { examToken } = useParams();
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-  // Fetch candidates data from the API
   useEffect(() => {
     axios.get("/api/exam_allotment/select-candidates/")
       .then(res => setCandidates(res.data))
       .catch(err => console.error("Error fetching candidates:", err));
   }, []);
 
-  // Handle checkbox state change
   const handleCheckboxChange = candidateId => {
     setSelectedCandidates(prev =>
       prev.includes(candidateId)
@@ -25,24 +24,33 @@ const CandidateSelectionPage = () => {
     );
   };
 
-  // Handle form submission
   const handleSubmit = () => {
+    // Prevent multiple clicks while sending
+    if (isSending) return;
+
     if (selectedCandidates.length === 0) {
-      return alert("Please select candidates.");
+      alert("Please select candidates.");
+      return;
     }
 
+    setIsSending(true);
+
     axios.post("/api/exam_allotment/select-candidates/", {
-      exam_token: examToken, // <-- Send exam_token properly
+      exam_token: examToken,
       selected_candidates: selectedCandidates
     })
-      .then(() => alert("Emails sent successfully"))
-      .catch((err) => {
-        console.error("Error sending emails:", err);
-        alert("Failed to send emails. Please try again.");
-      });
+    .then(() => {
+      alert("Emails sent successfully");
+    })
+    .catch(err => {
+      console.error("Error sending emails:", err);
+      alert("Failed to send emails. Please try again.");
+    })
+    .finally(() => {
+      setIsSending(false);
+    });
   };
 
-  // Filter candidates based on search term
   const filteredCandidates = candidates.filter(candidate =>
     candidate.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     candidate.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,65 +58,61 @@ const CandidateSelectionPage = () => {
     candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
-    <div style={{ padding: 20, maxWidth: 600, margin: 'auto' }}>
-      <h2>Select Candidates</h2>
-
-      {/* Search Bar */}
-      <div style={{ marginBottom: 16 }}>
+  const renderCandidateCard = c => (
+    <div key={c.id} className="candidate-card">
+      <div
+        className="candidate-details"
+        title={`${c.user_id} — ${c.first_name} ${c.last_name} (${c.email})`}
+      >
+        <strong>{c.user_id}</strong> — {c.first_name} {c.last_name} ({c.email})
+      </div>
+      <div className="checkbox-container">
         <input
-          type="text"
-          placeholder="Search by User ID, Name, or Email"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ width: '100%', padding: '8px' }}
+          type="checkbox"
+          checked={selectedCandidates.includes(c.id)}
+          onChange={() => handleCheckboxChange(c.id)}
         />
       </div>
+    </div>
+  );
 
-      {/* Internal Candidates Section */}
-      <div style={{ marginBottom: 16 }}>
-        <h3>Internal Candidates</h3>
-        {filteredCandidates
-          .filter(c => c.type === 'internal')
-          .map(c => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <input
-                type="checkbox"
-                checked={selectedCandidates.includes(c.id)}
-                onChange={() => handleCheckboxChange(c.id)}
-              />
-              <span style={{ marginLeft: 8 }}>
-                <strong>{c.user_id}</strong> — {c.first_name} {c.last_name} ({c.email})
-              </span>
-            </div>
-          ))
-        }
+  return (
+    <div className="selection-wrapper">
+      <div className="selection-container">
+        <h2>Select Candidates</h2>
+
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search by User ID, Name, or Email"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+
+        <div className="card-stack">
+          <div className="card-section">
+            <h3>Internal Candidates</h3>
+            {filteredCandidates
+              .filter(c => c.type === 'internal')
+              .map(renderCandidateCard)}
+          </div>
+
+          <div className="card-section">
+            <h3>External Candidates</h3>
+            {filteredCandidates
+              .filter(c => c.type === 'external')
+              .map(renderCandidateCard)}
+          </div>
+        </div>
+
+        <button
+          className="submit-btn"
+          onClick={handleSubmit}
+          disabled={isSending}
+        >
+          {isSending ? 'Sending…' : 'Send Exam URL to Selected Candidates'}
+        </button>
       </div>
-
-      {/* External Candidates Section */}
-      <div style={{ marginBottom: 16 }}>
-        <h3>External Candidates</h3>
-        {filteredCandidates
-          .filter(c => c.type === 'external')
-          .map(c => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <input
-                type="checkbox"
-                checked={selectedCandidates.includes(c.id)}
-                onChange={() => handleCheckboxChange(c.id)}
-              />
-              <span style={{ marginLeft: 8 }}>
-                <strong>{c.user_id}</strong> — {c.first_name} {c.last_name} ({c.email})
-              </span>
-            </div>
-          ))
-        }
-      </div>
-
-      {/* Submit Button */}
-      <button onClick={handleSubmit} style={{ padding: '8px 16px' }}>
-        Send Exam URL to Selected Candidates
-      </button>
     </div>
   );
 };

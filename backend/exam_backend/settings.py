@@ -116,10 +116,10 @@ WSGI_APPLICATION = "exam_backend.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "exam_room",  # from SELECT current_database();
+         "ENGINE": "django.db.backends.postgresql",
+        "NAME": "elogixa",  # from SELECT current_database();
         "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "hellosql",  # the one you set or just set
+        "PASSWORD": "DJ123",  # the one you set or just set
         "HOST": "localhost",
         "PORT": "5432",
     }

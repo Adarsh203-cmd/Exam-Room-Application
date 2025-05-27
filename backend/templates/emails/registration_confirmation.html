@@ -1,0 +1,22 @@
+<!-- templates/emails/registration_confirmation.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Registration Complete</title>
+  </head>
+  <body style="font-family: sans-serif; line-height:1.5; color:#333;">
+    <div style="max-width:600px; margin:auto; padding:20px; border:1px solid #ddd; border-radius:4px;">
+      <img src="{{ logo_url }}" alt="Company Logo" style="max-height:60px; display:block; margin:0 auto 20px;"/>
+      <h2 style="text-align:center;">Welcome, {{ first_name }}!</h2>
+      <p>Your registration at <strong>Elogixa Exam Portal</strong> was successful.</p>
+      <p><strong>User ID:</strong> {{ user_id }}<br/>
+         <strong>Password:</strong> {{ raw_password }}</p>
+      <p>Please keep these credentials secure.</p>
+      <hr style="border:none; border-top:1px solid #eee; margin:20px 0;"/>
+      <p style="text-align:center; color:#888; font-size:12px;">
+        &copy; {{ now|date:"Y" }} Elogixa Technology India Pvt Ltd
+      </p>
+    </div>
+  </body>
+</html>

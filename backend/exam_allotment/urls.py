@@ -7,7 +7,6 @@ from .views import (
     ExamDetailView,
     CandidateExamAssignmentViewSet,
     CandidateSelectionView,  # Import the new view
-    ScheduledExamsView, CompletedExamsView
 )
 
 router = DefaultRouter()
@@ -22,8 +21,4 @@ urlpatterns = [
     
     # Add the new URL for selecting candidates and sending emails
     path('select-candidates/', CandidateSelectionView.as_view(), name='select-candidates'),
-  #  path('exams/scheduled/', ScheduledExamsView.as_view(), name='exams-scheduled'),
-   # path('exams/completed/', CompletedExamsView.as_view(), name='exams-completed'),
-    path('exams/scheduled/', ScheduledExamsView.as_view(), name='exams-scheduled'),
-    path('exams/completed/', CompletedExamsView.as_view(), name='exams-completed'),
 ]

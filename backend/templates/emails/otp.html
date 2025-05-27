@@ -1,0 +1,19 @@
+<!-- templates/emails/otp.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Your OTP</title>
+</head>
+<body style="font-family: sans-serif; line-height:1.4; color: #333;">
+  <p><img src="{{ logo_url }}" alt="Elogixa Logo" width="120"/></p>
+  <h2>Your One-Time Password</h2>
+  <p>Hello,</p>
+  <p>Your OTP is <strong style="font-size: 1.2em;">{{ otp }}</strong>. It will expire in 5 minutes.</p>
+  <p>If you did not request this, please ignore.</p>
+  <hr/>
+  <p style="font-size:0.9em; color: #666;">
+    &copy; {{ now.year }} Elogixa Technology India Pvt Ltd
+  </p>
+</body>
+</html>

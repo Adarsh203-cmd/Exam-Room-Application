@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import "../../styles/exam_content_module_css/FillInTheBlankCreatePage.css"; // ⬅️ Make sure to create this CSS file
+
 const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 
 const FillInTheBlankCreatePage = () => {
@@ -15,9 +17,7 @@ const FillInTheBlankCreatePage = () => {
     try {
       const response = await fetch('http://localhost:8000/api/exam_content/fill/create/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -41,36 +41,42 @@ const FillInTheBlankCreatePage = () => {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h2>Create Fill-in-the-Blank Question</h2>
-      <form onSubmit={handleSubmit}>
-      <label>Subject:
-  <select
-    value={formData.subject}
-    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-  >
-    <option value="" disabled>Select Subject</option>
-    {SUBJECT_OPTIONS.map((subj, index) => (
-      <option key={index} value={subj}>{subj}</option>
-    ))}
-  </select>
-</label>
-<br /><br />
+    <div className="container">
+      <h2 className="heading">Create Fill-in-the-Blank Question</h2>
+      <form className="form" onSubmit={handleSubmit}>
+        <label>
+          Subject:
+          <select
+            value={formData.subject}
+            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+          >
+            <option value="" disabled>Select Subject</option>
+            {SUBJECT_OPTIONS.map((subj, index) => (
+              <option key={index} value={subj}>{subj}</option>
+            ))}
+          </select>
+        </label>
 
+        <label>
+          Question Text:
+          <textarea
+            value={formData.question_text}
+            onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
+            placeholder="Enter your question"
+          />
+        </label>
 
-        <textarea
-          placeholder="Question Text"
-          value={formData.question_text}
-          onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
-        /><br /><br />
+        <label>
+          Correct Answers:
+          <textarea
+            value={formData.correct_answers}
+            onChange={(e) => setFormData({ ...formData, correct_answers: e.target.value })}
+            placeholder="Expected answers (comma separated)"
+          />
+        </label>
 
-        <textarea
-          placeholder="Correct Answers"
-          value={formData.correct_answers}
-          onChange={(e) => setFormData({ ...formData, correct_answers: e.target.value })}
-        /><br /><br />
-
-        <label>Difficulty:
+        <label>
+          Difficulty:
           <select
             value={formData.difficulty}
             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
@@ -79,16 +85,18 @@ const FillInTheBlankCreatePage = () => {
             <option value="Medium">Medium</option>
             <option value="Hard">Hard</option>
           </select>
-        </label><br /><br />
+        </label>
 
-        <input
-          type="number"
-          placeholder="Marks"
-          value={formData.marks}
-          onChange={(e) => setFormData({ ...formData, marks: parseInt(e.target.value) })}
-        /><br /><br />
+        <label>
+          Marks:
+          <input
+            type="number"
+            value={formData.marks}
+            onChange={(e) => setFormData({ ...formData, marks: parseInt(e.target.value) })}
+          />
+        </label>
 
-        <button type="submit">Submit</button>
+        <button type="submit" className="submit-btn">Submit</button>
       </form>
     </div>
   );

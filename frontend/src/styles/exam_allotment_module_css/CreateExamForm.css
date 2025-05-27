@@ -1,0 +1,124 @@
+/* ── your existing styles ── */
+.subject-selection {
+  width: 100%;
+}
+
+.subject-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  justify-content: flex-start;
+}
+
+.subject-label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  margin-right: 12px;
+}
+
+.subject-label input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.subject-inputs {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.subject-inputs input {
+  width: 100px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.error {
+  color: red;
+  font-size: 0.875em;
+  margin-bottom: 8px;
+}
+
+/* ── floating‑label styles ── */
+.floating-label {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.floating-label input,
+.floating-label textarea,
+.floating-label select {
+  width: 100%;
+  border: groove;
+  border-bottom: 1px solid #ccc;
+  padding: 12px 10px 6px 10px; 
+  font-size: 16px;
+  background: transparent;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.floating-label input:focus,
+.floating-label textarea:focus,
+.floating-label select:focus {
+  outline: none;
+  border: 1px solid #007bff;
+  border-bottom-color: #007bff;
+}
+
+.floating-label label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: #999;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  background-color: white; /* Optional: prevents text overlap */
+  padding: 0 4px;
+}
+
+/* float up when focused or having content */
+.floating-label input:focus + label,
+.floating-label textarea:focus + label,
+.floating-label select:focus + label,
+.floating-label input:not(:placeholder-shown) + label,
+.floating-label textarea:not(:placeholder-shown) + label,
+.floating-label select:not([value=""]) + label {
+  top: -8px;
+  font-size: 0.8px;
+  font-size: 0.75em;
+  color: #007bff;
+}
+
+/* hide the dummy placeholder text */
+.floating-label input::placeholder,
+.floating-label textarea::placeholder {
+  color: transparent;
+}
+.small-input {
+  width: 250px; /* or 200px, adjust as needed */
+}
+/* ─── Inline Radio Group ─── */
+.radio-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;          /* space between each label+input */
+  margin-bottom: 1rem;  /* keep whatever bottom‑margin you like */
+}
+
+.radio-group > strong {
+  margin-right: 1rem;   /* space between title and first radio */
+}
+
+.radio-group label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 0.5rem;
+}

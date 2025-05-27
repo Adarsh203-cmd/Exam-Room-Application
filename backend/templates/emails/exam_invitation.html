@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Exam Invitation</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; background:#f2f4f6; padding:20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:8px;overflow:hidden;">
+    <tr>
+      <td style="background:#e0efff;text-align:center;padding:20px;">
+        <img src="{{ logo_url }}" alt="Elogixa Logo" style="max-height:60px;">
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="margin-top:0;color:#003366;">Hello {{ first_name }} {{ last_name }},</h2>
+       <p>You are invited to participate in the recruitment exam:</p>
+        <h3 style="color:#555;">“{{ exam_title }}”</h3>
+        <p>
+          <strong>User ID:</strong> {{ user_id }}<br>
+          <strong>Note:</strong> Your password was sent in your registration email.<br><br>
+          <strong>Date:</strong> {{ start_time|date:"F j, Y" }}<br>
+          <strong>Start Time:</strong> {{ start_time|time:"g:i a" }}<br>
+          <strong>End Time:</strong> {{ end_time|time:"g:i a" }}<br>
+          <strong>Location:</strong> {{ location }}
+        </p>
+        <p style="text-align:center;margin:30px 0;">
+          <a href="{{ exam_url }}"
+             style="background:#4169E1;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:4px;">
+            Begin Your Exam
+          </a>
+        </p>
+        <p>Good luck!<br>Recruitment Team</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:#f2f4f6;text-align:center;padding:10px;font-size:12px;color:#999;">
+        &copy; {{ now|date:"Y" }} Elogixa Technology India Pvt Ltd. All rights reserved.
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

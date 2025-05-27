@@ -1,12 +1,11 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  FaUsers,
-  FaUserTie,
-  FaClipboardList,
   FaChartBar,
-  FaCog
+  FaClipboardList,
+  FaCog,
+  FaUsers,
+  FaUserTie
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "../../styles/register_module_css/AdminDashboard.css";
 
 const modules = [
@@ -46,6 +45,14 @@ const modules = [
     path: "/report-dashboard",
     color: "#9D50BB"
   }
+  ,
+  {
+    name: "Manage questions",
+    icon: <FaChartBar />,
+    path: "/mcq-create",
+    color: "#9D50BB"
+  }
+  
 ];
 
 const AdminDashboard = () => {
