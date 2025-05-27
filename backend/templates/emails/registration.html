@@ -1,0 +1,64 @@
+<!-- templates/emails/registration.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to Elogixa Exam Portal</title>
+  </head>
+  <body style="font-family:sans-serif; color:#333; line-height:1.5; margin:0; padding:0;">
+    <div style="max-width:600px; margin:30px auto; padding:20px; border:1px solid #e0e0e0; border-radius:6px; background:#fafafa;">
+      <!-- Logo -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <img 
+          src="{{ logo_url }}" 
+          alt="Elogixa Logo" 
+          style="max-height:60px;"
+        />
+      </div>
+
+      <!-- Greeting -->
+      <h2 style="margin-top:0; text-align:center; font-weight:normal;">
+        Welcome, {{ first_name }} {{ last_name }}!
+      </h2>
+
+      <p>
+        Thank you for registering for our <strong>Elogixa Exam Portal</strong>. 
+        Below are your login credentials:
+      </p>
+
+      <!-- Credentials box -->
+      <div style="background:#fff; border:1px solid #ddd; border-radius:4px; padding:15px; margin:20px 0;">
+        <p style="margin:0 0 8px;">
+          <strong>User ID:</strong> {{ user_id }}
+        </p>
+        <p style="margin:0;">
+          <strong>Password:</strong> {{ raw_password }}
+        </p>
+      </div>
+
+      <p>
+        Please keep this information secure and do not share it with anyone. 
+        You may now log in at:
+      </p>
+
+      <p style="text-align:center; margin:20px 0;">
+        <a 
+          href="http://localhost:5173/login" 
+          style="background:#007bff; color:#fff; padding:10px 20px; text-decoration:none; border-radius:4px;"
+        >
+          Go to Login
+        </a>
+      </p>
+
+      <p style="font-size:12px; color:#666;">
+        If you have any questions, reply to this email or reach out to <a href="mailto:support@elogixa.com">support@elogixa.com</a>.
+      </p>
+
+      <hr style="border:none; border-top:1px solid #eee; margin:30px 0;" />
+
+      <p style="font-size:12px; color:#999; text-align:center;">
+        &copy; {{ now|date:"Y" }} Elogixa Technology India Pvt Ltd. All rights reserved.
+      </p>
+    </div>
+  </body>
+</html>

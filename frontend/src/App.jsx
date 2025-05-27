@@ -1,31 +1,31 @@
 // frontend/src/App.jsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import CandidateProfileWrapper from './components/register_module/CandidateProfileWrapper';
 import Dashboard from './components/register_module/Dashboard';
 
 // Employee registration Form 
+import CreateExam from './components/create_exam_module/CreateExam';
+import Report_Dashboard from './components/exam_evaluation/Report_dashboard';
+import ExamScreen from './components/exam_taker_module/Examscreen';
+import CandidateProfileForm from './components/register_module/candidateprofileform';
 import EmployeeForm from './components/register_module/employeeform';
 import ForgotPassword from './components/register_module/forgotpassword';
 import LoginForm from './components/register_module/Login';
-import CandidateProfileForm from './components/register_module/candidateprofileform';
 import OtpVerification from './components/register_module/otpverification';
-import CreateExam from './components/create_exam_module/CreateExam';
-import ExamScreen from './components/exam_taker_module/Examscreen';
 import SignupForm from './components/register_module/signupform';
-import Report_Dashboard from './components/Dashboard_module/Report_Dashboard';
 
 // ProtectedRoute wrapper
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
-// Exam Content Module
+// === Exam Content Module ===
 import FillInTheBlankCreatePage from './components/exam_content_module/FillInTheBlankCreatePage';
 import MCQCreatePage from './components/exam_content_module/MCQCreatePage';
 
 // Exam Allotment Module
-import CreateExamForm from './components/exam_allotment_module/CreateExamForm';
 import CandidateSelectionPage from './components/exam_allotment_module/CandidateSelectionPage';
+import CreateExamForm from './components/exam_allotment_module/CreateExamForm';
+
 
 // 2-step register page 
 import FirstRegisterPage from './components/register_module/FirstRegisterPage';

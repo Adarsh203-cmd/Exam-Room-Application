@@ -1,16 +1,15 @@
 import random
 import secrets
 import string
-
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
-from django.utils import timezone
-
-
+from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from .models import exam_creation, ExamAssignment
 from .serializers import (
     ExamCreationSerializer,
@@ -86,7 +85,7 @@ class ExamCreationViewSet(viewsets.ModelViewSet):
             role_or_department=data['role_or_department'],
             mcq_question_ids=data.get('mcq_question_ids', []),
             fib_question_ids=data.get('fib_question_ids', []),
-            location=data.get('location', ''),           # ← persist incoming location
+            location=data.get('location', ''),
             exam_token=token,
             exam_url=f"http://localhost:5173/login/{token}"
         )
@@ -108,7 +107,6 @@ class CandidateExamAssignmentViewSet(viewsets.ModelViewSet):
     """ CRUD for /api/exam_allotment/assignments/ """
     queryset = ExamAssignment.objects.all()
     serializer_class = CandidateExamAssignmentSerializer
-
 
 class CandidateSelectionView(APIView):
     """ GET lists candidates; POST sends emails and stores assignments """
@@ -135,67 +133,80 @@ class CandidateSelectionView(APIView):
     def post(self, request):
         exam_token = request.data.get('exam_token')
         selected = request.data.get('selected_candidates') or []
+
         if not exam_token:
             return Response({"error": "Exam token required"}, status=status.HTTP_400_BAD_REQUEST)
         if not selected:
             return Response({"error": "No candidates selected"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch the exam creation object using the exam_token
         exam = get_object_or_404(exam_creation, exam_token=exam_token)
-        exam_location = exam.location or ""    # ← capture location
+        exam_location = exam.location or ""
 
-        # Retrieve the internal and external candidates based on the selected user IDs
         interns = InternalCandidate.objects.filter(id__in=selected)
         externs = ExternalCandidate.objects.filter(id__in=selected)
 
         assignments = []
+
         for c in list(interns) + list(externs):
-            # Prepare the email subject and message
-            subj = f"Your Exam Details for {exam.exam_title}"
-            msg = (
+            # Build email context
+            subj = f"Your Invitation: {exam.exam_title}"
+            to_email = c.email
+            from_email = settings.EMAIL_HOST_USER
+
+            context = {
+                "first_name": c.first_name,
+                "last_name": c.last_name,
+                "user_id": c.user_id,
+                "exam_title": exam.exam_title,
+                "start_time": exam.exam_start_time,
+                "end_time": exam.exam_end_time,
+                "location": exam_location,
+                "exam_url": exam.exam_url,
+                "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+            }
+
+            # Render HTML and text
+            html_content = render_to_string("emails/exam_invitation.html", context)
+            text_content = (
                 f"Dear {c.first_name} {c.last_name},\n\n"
                 f"You are invited to the recruitment exam “{exam.exam_title}”.\n\n"
-                f"Start: {exam.exam_start_time}\n"
-                f"End:   {exam.exam_end_time}\n"
-                f"Location: {exam.location or 'TBA'}\n\n"
-                f"To begin your exam, please click the link below:\n"
-                f"{exam.exam_url}\n\n"
-                f"Good luck!\nRecruitment Team"
+                f"User ID: {c.user_id}\n"
+                f"Your password was sent in your registration email.\n\n"
+                f"Start Time: {exam.exam_start_time}\n"
+                f"End Time:   {exam.exam_end_time}\n"
+                f"Examination Center: {exam_location}\n\n"
+                f"To begin your exam, open this link:\n{exam.exam_url}\n\n"
+                "Good luck!\nRecruitment Team"
             )
-            try:
-                send_mail(subj, msg, settings.EMAIL_HOST_USER, [c.email], fail_silently=False)
-            except Exception as mail_exc:
-                print(f"Warning: failed to send mail to {c.email}: {mail_exc}")
 
-            # Create the assignment record for the selected candidate
+            # Send email
+            msg = EmailMultiAlternatives(subj, text_content, from_email, [to_email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send(fail_silently=False)
+
+            # Create assignment record
             assignment = ExamAssignment(
-                exam_token=exam.exam_token,    # store the exam token
-                url_link=exam.exam_url,        # store the exam URL
+                exam_token=exam.exam_token,
+                url_link=exam.exam_url,
                 invitation_sent_flag=True,
-                location=exam_location,        # ← set location on assignment
+                location=exam_location,
                 exam_start_time=exam.exam_start_time,
-                exam_end_time=exam.exam_end_time
+                exam_end_time=exam.exam_end_time,
+                user_id=c.user_id,
+                first_name=c.first_name,
+                last_name=c.last_name,
+                email=c.email,
+                password=c.password,
             )
-
-            # Assign candidate details based on internal or external candidate
             if isinstance(c, InternalCandidate):
                 assignment.internal_candidate = c
-                assignment.user_id = c.user_id
-                assignment.first_name = c.first_name
-                assignment.last_name = c.last_name
-                assignment.email = c.email
-                assignment.password = c.password
             else:
                 assignment.external_candidate = c
-                assignment.user_id = c.user_id
-                assignment.first_name = c.first_name
-                assignment.last_name = c.last_name
-                assignment.email = c.email
-                assignment.password = c.password
 
             assignment.save()
             assignments.append(assignment)
 
+        # Return summary response
         return Response({
             "message": "Emails sent and assignments created successfully.",
             "assignments": [
@@ -208,41 +219,3 @@ class CandidateSelectionView(APIView):
                 } for a in assignments
             ]
         }, status=status.HTTP_200_OK)
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.utils import timezone
-from .models import exam_creation, ExamAssignment
-from .serializers import ExamCreationSerializer, CandidateExamAssignmentSerializer
-
-class ScheduledExamsView(APIView):
-    """ GET /api/exam_allotment/scheduled/ """
-    def get(self, request):
-        now = timezone.now()
-        upcoming = exam_creation.objects.filter(exam_end_time__gt=now)
-        results = []
-
-        for exam in upcoming:
-            assignments = ExamAssignment.objects.filter(exam=exam)
-            results.append({
-                "exam": ExamCreationSerializer(exam).data,
-                "assignments": CandidateExamAssignmentSerializer(assignments, many=True).data
-            })
-
-        return Response(results, status=status.HTTP_200_OK)
-
-class CompletedExamsView(APIView):
-    """ GET /api/exam_allotment/exams/completed/ """
-    def get(self, request):
-        now = timezone.now()
-        # exams whose end_time is in the past
-        done = exam_creation.objects.filter(exam_end_time__lte=now)
-        data = []
-        for exam in done:
-            assigns = ExamAssignment.objects.filter(exam=exam)
-            data.append({
-                'exam': ExamCreationSerializer(exam).data,
-                'assignments': CandidateExamAssignmentSerializer(assigns, many=True).data
-            })
-        return Response(data)
-    

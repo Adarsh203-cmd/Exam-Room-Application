@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+import "../../styles/exam_content_module_css/MCQCreatePage.css"; // Import the CSS file
 
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 
 const MCQCreatePage = () => {
   const [formData, setFormData] = useState({
@@ -47,10 +48,7 @@ const MCQCreatePage = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Something went wrong');
-      }
+      if (!response.ok) throw new Error('Failed to create MCQ');
 
       alert('MCQ created successfully!');
       setFormData({
@@ -63,88 +61,88 @@ const MCQCreatePage = () => {
         marks: 1,
       });
     } catch (err) {
-      console.error(err.message);
-      alert('Failed to create MCQ');
+      alert(err.message);
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="mcq-container">
       <h2>Create MCQ Question</h2>
-      <form onSubmit={handleSubmit}>
-      <label>Subject:
-  <select
-    value={formData.subject}
-    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-  >
-    <option value="" disabled>Select Subject</option>
-    {SUBJECT_OPTIONS.map((subj, index) => (
-      <option key={index} value={subj}>{subj}</option>
-    ))}
-  </select>
-</label>
+      <form onSubmit={handleSubmit} className="mcq-form">
 
-<br /><br />
+        <label>Subject</label>
+        <select
+          value={formData.subject}
+          onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+          required
+        >
+          <option value="" disabled>Select Subject</option>
+          {SUBJECT_OPTIONS.map((subj, index) => (
+            <option key={index} value={subj}>{subj}</option>
+          ))}
+        </select>
 
+        <label>Question Text</label>
         <textarea
-          placeholder="Question Text"
+          placeholder="Enter question text"
           value={formData.question_text}
           onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
-        /><br /><br />
-
-        <input
-          placeholder="Add Option"
-          value={newOption}
-          onChange={(e) => setNewOption(e.target.value)}
+          required
         />
-        <button type="button" onClick={addOption}>Add</button>
 
-        <ul>
+        <label>Add Option</label>
+        <div className="option-input">
+          <input
+            type="text"
+            placeholder="Add Option"
+            value={newOption}
+            onChange={(e) => setNewOption(e.target.value)}
+          />
+          <button type="button" onClick={addOption}>Add</button>
+        </div>
+
+        <div className="options-list">
           {formData.options.map((option, index) => (
-            <li key={index}>
-              <label>
-                <input
-                  type={formData.answer_type === 'Single' ? 'radio' : 'checkbox'}
-                  name="correct"
-                  value={option}
-                  checked={formData.correct_answers.includes(option)}
-                  onChange={() => toggleCorrectAnswer(option)}
-                />
-                {option}
-              </label>
-            </li>
+            <label key={index} className="option-item">
+              <input
+                type={formData.answer_type === 'Single' ? 'radio' : 'checkbox'}
+                name="correct"
+                value={option}
+                checked={formData.correct_answers.includes(option)}
+                onChange={() => toggleCorrectAnswer(option)}
+              />
+              {option}
+            </label>
           ))}
-        </ul>
+        </div>
 
-        <label>Answer Type:
-          <select
-            value={formData.answer_type}
-            onChange={(e) => setFormData({ ...formData, answer_type: e.target.value, correct_answers: [] })}
-          >
-            <option value="Single">Single</option>
-            <option value="Multiple">Multiple</option>
-          </select>
-        </label><br /><br />
+        <label>Answer Type</label>
+        <select
+          value={formData.answer_type}
+          onChange={(e) => setFormData({ ...formData, answer_type: e.target.value, correct_answers: [] })}
+        >
+          <option value="Single">Single</option>
+          <option value="Multiple">Multiple</option>
+        </select>
 
-        <label>Difficulty:
-          <select
-            value={formData.difficulty}
-            onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-          >
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-          </select>
-        </label><br /><br />
+        <label>Difficulty Level</label>
+        <select
+          value={formData.difficulty}
+          onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+        >
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
 
+        <label>Marks</label>
         <input
           type="number"
-          placeholder="Marks"
           value={formData.marks}
           onChange={(e) => setFormData({ ...formData, marks: parseInt(e.target.value) })}
-        /><br /><br />
+        />
 
-        <button type="submit">Submit</button>
+        <button type="submit" className="submit-btn">Submit Question</button>
       </form>
     </div>
   );

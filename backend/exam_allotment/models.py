@@ -11,11 +11,12 @@ class exam_creation(models.Model):
     exam_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     exam_title = models.CharField(max_length=255)
     instruction = models.TextField(blank=True)
+
     exam_start_time = models.DateTimeField()
     exam_end_time = models.DateTimeField()
     created_by = models.IntegerField()
     role_or_department = models.CharField(max_length=100)
-
+    candidate_type = models.IntegerField(choices=[(1, 'Internal'), (2, 'External')], default=1) #added this
     location = models.CharField(max_length=255, blank=True, null=True)
     mcq_question_ids = models.JSONField(default=list, blank=True)
     fib_question_ids = models.JSONField(default=list, blank=True)

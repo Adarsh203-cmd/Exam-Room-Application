@@ -1,39 +1,87 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+//Login.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { ThreeDots } from 'react-loader-spinner'; // Import the loader
+import { ThreeDots } from 'react-loader-spinner';
 import '../../styles/register_module_css/App.css';
 
 const LoginForm = () => {
   const [userID, setUserID] = useState('');
   const [password, setPassword] = useState('');
-  const [loginType, setLoginType] = useState('candidate'); // default
-  const [isLoading, setIsLoading] = useState(false); // state to control loading spinner
+  const [loginType, setLoginType] = useState('candidate');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExamTakerMode, setIsExamTakerMode] = useState(false);
+  const [examToken, setExamToken] = useState('');
+  const [error, setError] = useState('');
+  
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract exam token from URL parameters
+  useEffect(() => {
+    // Check if URL contains exam token
+    const pathParts = location.pathname.split('/');
+    const tokenFromPath = pathParts[pathParts.length - 1];
+    
+    // Only set exam token mode if token looks valid (at least 6 chars)
+    if (location.pathname.includes('/login/') && tokenFromPath.length >= 6) {
+      console.log("Exam token detected:", tokenFromPath);
+      setIsExamTakerMode(true);
+      setExamToken(tokenFromPath);
+      setLoginType('exam-taker');
+    }
+  }, [location.pathname]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Show loading spinner while processing
+    setIsLoading(true);
+    setError('');
 
     try {
-      console.log("Login payload:", {
-        login_type: loginType,
-        user_id: userID,
-        password: password,
-      });
-      const response = await axios.post('http://127.0.0.1:8000/api/candidate/login/', {
-        login_type: loginType,    // 'internal' or 'external'
-        user_id: userID,          // NOT email
-        password: password,
-      });
+      if (isExamTakerMode) {
+        console.log("Attempting exam login with token:", examToken);
+        
+        // Exam login
+        const response = await axios.post('http://127.0.0.1:8000/api/exam-view/exam-login/', {
+          user_id: userID,
+          password: password,
+          exam_token: examToken
+        });
 
-      if (response.status === 200) {
+        const {
+          access,
+          refresh,
+          role,
+          exam_token,
+          candidate_id,
+          message
+        } = response.data;
+
+        // Store tokens and user data in localStorage
+        localStorage.setItem("accessToken", access);
+        localStorage.setItem("refreshToken", refresh);
+        localStorage.setItem("role", role);
+        localStorage.setItem("userId", userID);
+        localStorage.setItem("examToken", exam_token);
+        localStorage.setItem("candidateId", candidate_id);
+
+        console.log("Login successful, redirecting to instructions");
+        
+        // Clear loading state
+        setIsLoading(false);
+        
+        // Redirect to instructions page
+        navigate('/instructions', { replace: true });
+      } else {
+        // General login
+        const response = await axios.post('http://127.0.0.1:8000/api/candidate/login/', {
+          login_type: loginType,
+          user_id: userID,
+          password: password,
+        });
+
         const { access, refresh, role } = response.data;
-        // Log to verify
-        console.log("Access Token:", access);
-        console.log("Role:", role);
-        // Store role in localStorage
-        // Save tokens and role
+
         localStorage.setItem("accessToken", access);
         localStorage.setItem("refreshToken", refresh);
         localStorage.setItem("role", role);
@@ -50,7 +98,7 @@ const LoginForm = () => {
     } catch (error) {
       alert(error.response?.data?.error || "Login failed. Try again.");
     } finally {
-      setIsLoading(false); // Hide loading spinner after processing
+      setIsLoading(false);
     }
   };
 
@@ -142,5 +190,4 @@ const LoginForm = () => {
   </div>    
   );
 };
-
 export default LoginForm;

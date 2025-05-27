@@ -1,5 +1,20 @@
 /* Sidebar */
 .sidebar {
+<<<<<<< HEAD
+    position:fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 80px;
+    height: 100vh;
+    background-color: #202123;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+=======
   position: fixed;
   top: 0;
   left: 0;
@@ -76,6 +91,7 @@
     height: auto; /* Adjust the height */
     position: relative;  /* Make it flow normally with the content */
     padding: 12px 10px;
+>>>>>>> 470c75e5f0133bc377e0bc13371098b18a67ae9c
   }
   
   .logo {

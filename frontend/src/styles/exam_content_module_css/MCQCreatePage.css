@@ -1,0 +1,87 @@
+.mcq-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mcq-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .mcq-form label {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  .mcq-form select,
+  .mcq-form textarea,
+  .mcq-form input[type="text"],
+  .mcq-form input[type="number"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+  }
+  
+  .option-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .option-input input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 15px;
+  }
+  
+  .option-input button {
+    width: fit-content;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+  
+  .option-input button:hover {
+    background-color: #0056b3;
+  }
+  
+  
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-left: 15px;
+  }
+  
+  .option-item {
+    font-weight: normal;
+  }
+  
+  .submit-btn {
+    margin-top: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .submit-btn:hover {
+    background-color: #218838;
+  }
+  
