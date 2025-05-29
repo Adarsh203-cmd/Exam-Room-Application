@@ -10,8 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
 from corsheaders.defaults import default_headers
+from datetime import timedelta
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-419!8za-6axlzd0vro63wndopn*u^gk&%qpxsg^l2zi9@p1ek2"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-419!8za-6axlzd0vro63wndopn*u^gk&%qpxsg^l2zi9@p1ek2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+# Allowed hosts for production and development
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+if not DEBUG:
+    ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
 
 
 # Application definition
@@ -50,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # For serving static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
@@ -59,8 +67,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# CORS settings for production and development
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5173",  # Local development
+    "https://your-app-name.vercel.app",  # Replace with your actual Vercel URL
 ]
 
 CORS_ALLOW_METHODS = [
@@ -76,20 +86,19 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'content-type',
 ]
 
+# REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
-from datetime import timedelta
-
+# JWT Configuration
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # expire after 30 mins
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # refresh token valid for 1 day
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-
 
 ROOT_URLCONF = "exam_backend.urls"
 
@@ -111,38 +120,58 @@ TEMPLATES = [
 WSGI_APPLICATION = "exam_backend.wsgi.application"
 
 
-# Database
+# Database configuration - Production vs Development
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "exam_room",  # from SELECT current_database();
-        "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "hellosql",  # the one you set or just set
-        "HOST": "localhost",
-        "PORT": "5432",
+if 'DATABASE_URL' in os.environ:
+    # Production database (Render PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
-}
+else:
+    # Development database (your local setup)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "exam_room",  # from SELECT current_database();
+            "USER": "postgres",  # from SELECT current_user;
+            "PASSWORD": "hellosql",  # the one you set or just set
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
 
-# For development only
+# Email configuration (for development and production)
 DEFAULT_FROM_EMAIL = "your_email@example.com"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "hrelogixa@gmail.com"  # use a valid Gmail
-EMAIL_HOST_PASSWORD = (
-    "keop ykgd elfu qdci"  # use an App Password (not your normal password!)
-)
 
-# Use local memory caching (you can use Redis in production)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',  # Name of the cache (for LocMemCache, any name works)
+# Use environment variables for email in production
+if DEBUG:
+    EMAIL_HOST_USER = "hrelogixa@gmail.com"  # use a valid Gmail
+    EMAIL_HOST_PASSWORD = "keop ykgd elfu qdci"  # use an App Password
+else:
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'hrelogixa@gmail.com')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'keop ykgd elfu qdci')
+
+# Cache configuration
+if DEBUG:
+    # Use local memory caching for development
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
     }
-}
+else:
+    # Use dummy cache for production (you can upgrade to Redis later)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
+    }
 
 
 # Password validation
@@ -179,9 +208,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Static files storage for production (WhiteNoise)
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 86400
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
