@@ -1,4 +1,4 @@
-//Login.jsx
+//Enhanced Login.jsx with better debugging
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -73,12 +73,21 @@ const LoginForm = () => {
         // Redirect to instructions page
         navigate('/instructions', { replace: true });
       } else {
-        // General login
+        // General login - Enhanced debugging
+        console.log("🔍 Attempting general login with:", {
+          login_type: loginType,
+          user_id: userID,
+          password: password,
+          api_endpoint: 'http://127.0.0.1:8000/api/candidate/login/'
+        });
+        
         const response = await axios.post('http://127.0.0.1:8000/api/candidate/login/', {
           login_type: loginType,
           user_id: userID,
           password: password,
         });
+
+        console.log("✅ Login response received:", response.data);
 
         const { access, refresh, role } = response.data;
 
@@ -87,16 +96,50 @@ const LoginForm = () => {
         localStorage.setItem("role", role);
         localStorage.setItem("userId", userID);
 
+        console.log("💾 Data stored in localStorage:", {
+          role: localStorage.getItem("role"),
+          userId: localStorage.getItem("userId"),
+          hasToken: !!localStorage.getItem("accessToken")
+        });
+
         if (role === 'admin') {
+          console.log("🔑 Admin login successful - redirecting to dashboard");
           alert("Admin login successful!");
-          navigate('/dashboard');
+          navigate('/admin-dash');
         } else {
+          console.log("👤 Candidate login successful - redirecting to profile");
           alert("Candidate login successful!");
-          navigate(`/candidate-profile/${userID}`); // adjust route as needed
+          navigate(`/candidate-profile/${userID}`);
         }
       }
     } catch (error) {
-      alert(error.response?.data?.error || "Login failed. Try again.");
+      console.error("❌ Login error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      });
+      
+      // More detailed error message
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Invalid credentials. Please check your email/password.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Login endpoint not found. Please contact support.";
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +164,21 @@ const LoginForm = () => {
       <div className="elogixa-signup-right">
         <div className="signup-form outlined-form">
           <h2>Login to your Account</h2>
+          
+          {/* Show error message if exists */}
+          {error && (
+            <div style={{
+              color: 'red',
+              backgroundColor: '#ffebee',
+              padding: '10px',
+              borderRadius: '4px',
+              marginBottom: '15px',
+              border: '1px solid #ffcdd2'
+            }}>
+              {error}
+            </div>
+          )}
+          
           <form onSubmit={handleLogin}>
             {/* Floating label select */}
             <div className="floating-label-group">

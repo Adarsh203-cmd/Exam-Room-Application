@@ -1,3 +1,4 @@
+{% load tz %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,13 +16,13 @@
       <td style="padding:30px;">
         <h2 style="margin-top:0;color:#003366;">Hello {{ first_name }} {{ last_name }},</h2>
        <p>You are invited to participate in the recruitment exam:</p>
-        <h3 style="color:#555;">“{{ exam_title }}”</h3>
+        <h3 style="color:#555;">"{{ exam_title }}"</h3>
         <p>
           <strong>User ID:</strong> {{ user_id }}<br>
           <strong>Note:</strong> Your password was sent in your registration email.<br><br>
-          <strong>Date:</strong> {{ start_time|date:"F j, Y" }}<br>
-          <strong>Start Time:</strong> {{ start_time|time:"g:i a" }}<br>
-          <strong>End Time:</strong> {{ end_time|time:"g:i a" }}<br>
+          <strong>Date:</strong> {% timezone "Asia/Kolkata" %}{{ start_time|date:"F j, Y" }}{% endtimezone %}<br>
+          <strong>Start Time:</strong> {% timezone "Asia/Kolkata" %}{{ start_time|date:"g:i a" }}{% endtimezone %} IST<br>
+          <strong>End Time:</strong> {% timezone "Asia/Kolkata" %}{{ end_time|date:"g:i a" }}{% endtimezone %} IST<br>
           <strong>Location:</strong> {{ location }}
         </p>
         <p style="text-align:center;margin:30px 0;">

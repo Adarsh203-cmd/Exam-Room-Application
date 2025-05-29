@@ -17,19 +17,20 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
-    if (newPassword && !passwordRegex.test(newPassword)) {
-      setNewPassError('Password must be at least 8 characters and alphanumeric');
-    } else {
-      setNewPassError('');
-    }
+if (newPassword && !passwordRegex.test(newPassword)) {
+  setNewPassError('Password must be at least 8 characters and include at least 1 uppercase letter, 1 number, and 1 special character');
+} else {
+  setNewPassError('');
+}
 
-    if (confirmPassword && newPassword !== confirmPassword) {
-      setConfirmPassError('Passwords do not match');
-    } else {
-      setConfirmPassError('');
-    }
+if (confirmPassword && newPassword !== confirmPassword) {
+  setConfirmPassError('Passwords do not match');
+} else {
+  setConfirmPassError('');
+}
+
   }, [newPassword, confirmPassword]);
 
   const handleSubmit = async (e) => {
@@ -154,7 +155,7 @@ const ForgotPassword = () => {
                   {showNewPass ? 'Hide' : 'Show'}
                 </span>
               </div>
-              {newPassError && <p style={{ color: 'red', marginTop: '-10px' }}>{newPassError}</p>}
+              {newPassError && <p style={{ color: 'red', marginTop: '5px' }}>{newPassError}</p>}
 
               <div style={{ position: 'relative' }}>
                 <input
@@ -180,7 +181,7 @@ const ForgotPassword = () => {
                   {showConfirmPass ? 'Hide' : 'Show'}
                 </span>
               </div>
-              {confirmPassError && <p style={{ color: 'red', marginTop: '-10px' }}>{confirmPassError}</p>}
+              {confirmPassError && <p style={{ color: 'red', marginTop: '5px' }}>{confirmPassError}</p>}
             </>
           )}
 

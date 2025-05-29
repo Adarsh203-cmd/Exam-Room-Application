@@ -1,124 +1,509 @@
-/* ── your existing styles ── */
-.subject-selection {
+/* CreateExamForm.css */
+
+/* Main Container */
+.exam-form-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Form Wrapper */
+.form-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.7fr 1.2fr; /* Increased left side width */
+  min-height: 140vh;
+}
+
+/* Form Section (Left Side) */
+.form-section {
+  padding: 3rem;
+  overflow-y: auto;
+  max-height: 140vh;
+}
+
+.form-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.form-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.form-section::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Preview Section (Right Side) */
+.preview-section {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 3rem;
+  border-left: 1px solid #e2e8f0;
+  overflow-y: auto;
+  max-height: 140vh;
+}
+
+.preview-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-section::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.preview-section::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Typography */
+.form-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-subtitle {
+  color: #718096;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.preview-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-input {
   width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #fff;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Error Messages */
+.error-message {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Subject Selection Section */
+/* Subjects Section Styling */
+/* Subjects Section Styling */
+/* Subjects Section Styling */
+.subjects-section {
+  margin: 20px 0;
+}
+
+.subjects-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.subject-item {
+  margin-bottom: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  background: #fafafa;
 }
 
 .subject-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  justify-content: flex-start;
+  gap: 20px;
 }
 
-.subject-label {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  margin-right: 12px;
-}
-
-.subject-label input[type="checkbox"] {
-  margin-right: 6px;
-}
-
-.subject-inputs {
+.subject-checkbox-label {
   display: flex;
-  gap: 8px;
-  flex: 0 0 auto;
-}
-
-.subject-inputs input {
-  width: 100px;
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.error {
-  color: red;
-  font-size: 0.875em;
-  margin-bottom: 8px;
-}
-
-/* ── floating‑label styles ── */
-.floating-label {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.floating-label input,
-.floating-label textarea,
-.floating-label select {
-  width: 100%;
-  border: groove;
-  border-bottom: 1px solid #ccc;
-  padding: 12px 10px 6px 10px; 
-  font-size: 16px;
-  background: transparent;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.floating-label input:focus,
-.floating-label textarea:focus,
-.floating-label select:focus {
-  outline: none;
-  border: 1px solid #007bff;
-  border-bottom-color: #007bff;
-}
-
-.floating-label label {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  color: #999;
-  pointer-events: none;
-  transition: all 0.2s ease;
-  font-size: 16px;
-  background-color: white; /* Optional: prevents text overlap */
-  padding: 0 4px;
-}
-
-/* float up when focused or having content */
-.floating-label input:focus + label,
-.floating-label textarea:focus + label,
-.floating-label select:focus + label,
-.floating-label input:not(:placeholder-shown) + label,
-.floating-label textarea:not(:placeholder-shown) + label,
-.floating-label select:not([value=""]) + label {
-  top: -8px;
-  font-size: 0.8px;
-  font-size: 0.75em;
-  color: #007bff;
-}
-
-/* hide the dummy placeholder text */
-.floating-label input::placeholder,
-.floating-label textarea::placeholder {
-  color: transparent;
-}
-.small-input {
-  width: 250px; /* or 200px, adjust as needed */
-}
-/* ─── Inline Radio Group ─── */
-.radio-group {
-  display: inline-flex;
   align-items: center;
-  gap: 1.5rem;          /* space between each label+input */
-  margin-bottom: 1rem;  /* keep whatever bottom‑margin you like */
+  gap: 10px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  flex: 1;
 }
 
-.radio-group > strong {
-  margin-right: 1rem;   /* space between title and first radio */
-}
-
-.radio-group label {
-  display: inline-flex;
-  align-items: center;
+.subject-checkbox {
+  width: 18px;
+  height: 18px;
   cursor: pointer;
 }
 
-.radio-group input[type="radio"] {
-  margin-right: 0.5rem;
+.subject-name {
+  font-size: 1rem;
+}
+
+.question-counts-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.count-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: fit-content;
+}
+
+.count-input {
+  width: 35px;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 3px;
+  transition: border-color 0.2s;
+}
+
+.count-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.count-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .subject-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .question-counts-inline {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+/* Submit Button */
+.submit-button {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.submit-button::after {
+  content: " 🚀";
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Preview Cards */
+.preview-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.subject-heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.subject-heading::before {
+  content: "📖";
+}
+
+.question-type-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 1rem 0 0.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.question-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.question-item {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid #667eea;
+  color: #4a5568;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.question-item:hover {
+  background: #edf2f7;
+  border-left-color: #764ba2;
+  transform: translateX(4px);
+}
+
+.empty-preview {
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+  padding: 3rem;
+  background: white;
+  border-radius: 16px;
+  border: 2px dashed #e2e8f0;
+}
+
+.empty-preview::before {
+  content: "📝";
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Datetime Group */
+.datetime-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #667eea;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .form-wrapper {
+    margin: 1rem;
+    max-width: none;
+  }
+  
+  .form-section, .preview-section {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .exam-form-container {
+    padding: 1rem;
+  }
+  
+  .form-wrapper {
+    grid-template-columns: 1fr;
+    margin: 0;
+    border-radius: 12px;
+  }
+  
+  .form-section, .preview-section {
+    padding: 1.5rem;
+    max-height: none;
+  }
+  
+  .preview-section {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .form-title {
+    font-size: 2rem;
+  }
+  
+  .datetime-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .subject-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .count-controls {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+  
+  .count-input {
+    width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-section, .preview-section {
+    padding: 1rem;
+  }
+  
+  .form-title {
+    font-size: 1.75rem;
+  }
+  
+  .submit-button {
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Focus and Accessibility */
+.form-input:focus,
+.subject-checkbox:focus,
+.count-input:focus,
+.submit-button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .form-input {
+    border-width: 2px;
+    border-color: #000;
+  }
+  
+  .form-input:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

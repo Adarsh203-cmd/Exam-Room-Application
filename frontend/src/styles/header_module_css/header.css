@@ -1,7 +1,69 @@
+.header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  background-color: #fff;
+  height: 10%;
+}
+
+
+/* Floating buttons are fixed to top right, always visible */
+
+
+.floating-buttons {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  display: flex !important;
+  flex-direction: row !important;  /* Side by side layout */
+  align-items: center;
+  gap: 15px !important;  /* Space between buttons */
+  z-index: 1200;
+}
+
+.floating-btn {
+  width: 100px;
+  height: 40px;
+  background: #f4f6fa;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  display: flex !important;  /* Force flex display */
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  color: #555;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  margin: 0 !important;  /* Remove any potential margins */
+  position: relative !important;  /* Ensure proper positioning */
+}
+
+.floating-btn:hover {
+  background: #FFD54F;
+  color: #222;
+  box-shadow: 0 4px 16px rgba(255, 213, 79, 0.13);
+}
+
+/* Additional specificity to override any conflicting styles */
+.header-wrapper .floating-buttons {
+  display: flex !important;
+  flex-direction: row !important;  /* Side by side layout */
+}
+
+.header-wrapper .floating-buttons .floating-btn {
+  display: flex !important;
+  margin-bottom: 0 !important;
+}
 .admin-header {
   position: sticky;
   top: 0;
   z-index: 1000;
+  height: 20%;
   background: #fff;
   display: flex;
   align-items: center;
@@ -17,8 +79,8 @@
 }
 
 .company-logo {
-  height: 90px;
-  width: 90px;
+  height: 60px;
+  width: 60px;
   border-radius: 50%;
   object-fit: contain;
   background: #f3f3f3;
@@ -34,34 +96,7 @@
   line-height: 1.1;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.header-actions button {
-  background: #f4f6fa;
-  border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  color: #555;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-.header-actions button:hover {
-  background: #FFD54F;
-  color: #222;
-  box-shadow: 0 4px 16px rgba(255, 213, 79, 0.13);
-}
-
+/* Responsive styles */
 @media (max-width: 600px) {
   .admin-header {
     flex-direction: column;
@@ -78,9 +113,13 @@
   .company-name h2 {
     font-size: 1.1rem;
   }
-  .header-actions button {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
+  .floating-buttons {
+    top: 10px;
+    right: 10px;
+    gap: 8px;
+  }
+  .floating-btn {
+    padding: 8px 12px 8px 10px;
+    font-size: 0.92rem;
   }
 }

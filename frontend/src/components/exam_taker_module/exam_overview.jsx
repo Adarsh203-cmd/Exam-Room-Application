@@ -105,6 +105,26 @@ const ExamOverview = () => {
     navigate('/exam');
   };
 
+  // Button styles
+  const buttonStyle = {
+    backgroundColor: '#007bff',
+    color: 'white',
+    padding: '12px 24px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+    marginTop: '20px',
+    width: '100%',
+    maxWidth: '200px'
+  };
+
+  const buttonHoverStyle = {
+    backgroundColor: '#0056b3'
+  };
+
   if (loading) return <div className="exam-overview-container">Loading exam information...</div>;
   if (error) return <div className="exam-overview-container error">{error}</div>;
 
@@ -141,7 +161,14 @@ const ExamOverview = () => {
           </div>
         </div>
 
-        <button className="proceed-btn" onClick={handleStartExam}>Start Exam</button>
+        <button 
+          style={buttonStyle}
+          onClick={handleStartExam}
+          onMouseOver={(e) => e.target.style.backgroundColor = buttonHoverStyle.backgroundColor}
+          onMouseOut={(e) => e.target.style.backgroundColor = buttonStyle.backgroundColor}
+        >
+          Start Exam
+        </button>
       </div>
     </div>
   );

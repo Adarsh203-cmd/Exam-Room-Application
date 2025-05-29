@@ -81,7 +81,8 @@
   margin-top: 10px;
 }
 
-/* Modal Styling */
+
+/* Modal Styling - High Z-Index to Overlap Everything */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -90,9 +91,10 @@
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  z-index: 999;
+  z-index: 0; /* Very high z-index to appear above everything */
+  padding-top: 80px; /* Reduced padding since we're overlapping */
 }
 
 .modal-content {
@@ -102,11 +104,12 @@
   width: 80%;
   max-width: 700px;
   position: relative;
-  max-height: 90vh;
+  max-height: calc(100vh - 100px); /* More space since we overlap header */
   overflow-y: auto;
-  z-index: 1000;
-  margin: 10px; /* Ensuring there's space around the modal */
+  z-index: -1; /* Even higher z-index */
+  margin: 10px;
   box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Strong shadow for visibility */
 }
 
 /* Close Button for Modal */
@@ -257,10 +260,11 @@
 }
 
 /* Extra Small Devices (below 480px) */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .modal-content {
     width: 95%;
     padding: 20px;
+    max-height: calc(100vh - 120px); /* Adjust max-height for smaller screens */
   }
 
   .report-filters {
@@ -290,7 +294,7 @@
 
   /* Adjust modal overlay to be responsive */
   .modal-overlay {
-    padding: 10px; /* Add padding around the modal to ensure it doesn't touch the edges */
+    padding: 100px; /* Add padding around the modal to ensure it doesn't touch the edges */
   }
 }
 /* For screens smaller than 1300px - Fixing the modal */

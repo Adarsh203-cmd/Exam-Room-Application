@@ -89,21 +89,72 @@ const CandidateSelectionPage = () => {
           onChange={e => setSearchTerm(e.target.value)}
         />
 
-        <div className="card-stack">
-          <div className="card-section">
-            <h3>Internal Candidates</h3>
-            {filteredCandidates
-              .filter(c => c.type === 'internal')
-              .map(renderCandidateCard)}
-          </div>
+<div className="card-stack-tables">
+  <div className="card-table-section internal-table-section">
+    <h3>Internal Candidates</h3>
+    <table className="candidate-table">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredCandidates
+          .filter(c => c.type === 'internal')
+          .map(c => (
+            <tr key={c.id}>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={selectedCandidates.includes(c.id)}
+                  onChange={() => handleCheckboxChange(c.id)}
+                />
+              </td>
+              <td>{c.user_id}</td>
+              <td>{c.first_name} {c.last_name}</td>
+              <td>{c.email}</td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
 
-          <div className="card-section">
-            <h3>External Candidates</h3>
-            {filteredCandidates
-              .filter(c => c.type === 'external')
-              .map(renderCandidateCard)}
-          </div>
-        </div>
+  <div className="card-table-section external-table-section">
+    <h3>External Candidates</h3>
+    <table className="candidate-table">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredCandidates
+          .filter(c => c.type === 'external')
+          .map(c => (
+            <tr key={c.id}>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={selectedCandidates.includes(c.id)}
+                  onChange={() => handleCheckboxChange(c.id)}
+                />
+              </td>
+              <td>{c.user_id}</td>
+              <td>{c.first_name} {c.last_name}</td>
+              <td>{c.email}</td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
         <button
           className="submit-btn"
