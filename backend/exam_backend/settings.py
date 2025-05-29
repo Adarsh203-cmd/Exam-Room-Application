@@ -111,19 +111,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "exam_backend.wsgi.application"
 
 
-# Database
+# Database configuration - Production vs Development
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "exam_room",  # from SELECT current_database();
-        "USER": "postgres",  # from SELECT current_user;
-        "PASSWORD": "hellosql",  # the one you set or just set
-        "HOST": "localhost",
-        "PORT": "5432",
+if 'DATABASE_URL' in os.environ:
+    # Production database (Render PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
-}
+else:
+    # Development database (your local setup)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "exam_room",  # from SELECT current_database();
+            "USER": "postgres",  # from SELECT current_user;
+            "PASSWORD": "hellosql",  # the one you set or just set
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
 
 # For development only
 DEFAULT_FROM_EMAIL = "your_email@example.com"
