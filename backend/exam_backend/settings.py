@@ -10,11 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os  # ← MISSING IMPORT - THIS WAS THE PROBLEM!
-import dj_database_url  # ← MISSING IMPORT - NEEDED FOR DATABASE_URL
+import os
 from pathlib import Path
 from corsheaders.defaults import default_headers
 from datetime import timedelta
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -117,12 +117,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "exam_backend.wsgi.application"
 
 # Database configuration - Production vs Development
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Manual parsing of DATABASE_URL (no dj-database-url needed)
 
 if 'DATABASE_URL' in os.environ:
     # Production database (Render PostgreSQL)
+    # Parse DATABASE_URL manually
+    database_url = os.environ.get('DATABASE_URL')
+    url = urlparse(database_url)
+    
     DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],  # Remove leading slash
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+            'OPTIONS': {
+                'connect_timeout': 10,
+            }
+        }
     }
 else:
     # Development database (your local setup)
