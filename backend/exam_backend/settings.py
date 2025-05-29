@@ -16,6 +16,7 @@ from corsheaders.defaults import default_headers
 from datetime import timedelta
 from urllib.parse import urlparse
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -232,3 +233,4 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 86400
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+

@@ -1,7 +1,7 @@
-import axios from 'axios';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { useEffect, useState } from 'react';
+import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -14,8 +14,9 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
-import '../../styles/Dashboard_module_css/Dashboard.css';
+} from "recharts";
+import "../../styles/Dashboard_module_css/Dashboard.css";
+import { apiClient } from '../../config/api';
 
 // Sample Data for Exam Reports (keep as is)
 const examReports = [
@@ -31,20 +32,20 @@ function isPass(candidate, cutOff) {
   );
 }
 
-const COLORS = ['#38A169', '#E53E3E'];
+const COLORS = ["#38A169", "#E53E3E"];
 
 const Report_Dashboard = () => {
   // Dashboard state
   const [totalExams, setTotalExams] = useState(0);
   const [upcomingExams, setUpcomingExams] = useState([]);
-  const [successRate, setSuccessRate] = useState('0%');
+  const [successRate, setSuccessRate] = useState("0%");
   const [showUpcomingModal, setShowUpcomingModal] = useState(false);
 
   // Reporting state
   const [popupData, setPopupData] = useState(null);
   const [selectedExam, setSelectedExam] = useState(null);
   const [customCutOff, setCustomCutOff] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortOrder, setSortOrder] = useState("asc");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   // Assigned people modal state
@@ -53,28 +54,29 @@ const Report_Dashboard = () => {
   const [loadingAssigned, setLoadingAssigned] = useState(false);
   const [assignedError, setAssignedError] = useState(null);
 
-    // All exams for "View Assignments" integration
-    const [allExams, setAllExams] = useState([]);
-    const [loadingAllExams, setLoadingAllExams] = useState(false);
-    const [allExamsError, setAllExamsError] = useState(null);
+  // All exams for "View Assignments" integration
+  const [allExams, setAllExams] = useState([]);
+  const [loadingAllExams, setLoadingAllExams] = useState(false);
+  const [allExamsError, setAllExamsError] = useState(null);
 
   // Fetch dashboard stats from API
   useEffect(() => {
-    axios.get("http://localhost:8000/api/dashboard/total-upcomingexams/")
-      .then(response => {
+    apiClient
+      .get("/api/dashboard/total-upcomingexams/")
+      .then((response) => {
         const data = response.data;
         setTotalExams(data.total_exams_count);
         setUpcomingExams(data.upcoming_exam_details || []);
-        setSuccessRate(data.success_rate || '0%');
+        setSuccessRate(data.success_rate || "0%");
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("API fetch error:", error);
       });
   }, []);
 
   useEffect(() => {
     setLoadingAllExams(true);
-    fetch('/api/dashboard/exams/')
+    fetch("/api/dashboard/exams/")
       .then((res) => res.json())
       .then((data) => {
         // If your API returns {exams: [...]}, use data.exams; else use data directly
@@ -82,7 +84,7 @@ const Report_Dashboard = () => {
         setLoadingAllExams(false);
       })
       .catch((err) => {
-        setAllExamsError('Failed to load exams.');
+        setAllExamsError("Failed to load exams.");
         setLoadingAllExams(false);
       });
   }, []);
@@ -96,7 +98,7 @@ const Report_Dashboard = () => {
   };
 
   const sortedReports = [...examReports].sort((a, b) =>
-    sortOrder === 'asc'
+    sortOrder === "asc"
       ? new Date(a.date) - new Date(b.date)
       : new Date(b.date) - new Date(a.date)
   );
@@ -110,8 +112,8 @@ const Report_Dashboard = () => {
       else fail++;
     });
     return [
-      { name: 'Pass', value: pass },
-      { name: 'Fail', value: fail },
+      { name: "Pass", value: pass },
+      { name: "Fail", value: fail },
     ];
   };
 
@@ -131,7 +133,7 @@ const Report_Dashboard = () => {
 
   const exportToPDF = (exam) => {
     if (!exam || !exam.name) {
-      alert('Exam data is missing');
+      alert("Exam data is missing");
       return;
     }
 
@@ -157,16 +159,18 @@ const Report_Dashboard = () => {
       c.aptitude,
       c.reasoning,
       c.networks,
-      isPass(c, cutOffUsed) ? 'Pass' : 'Fail',
+      isPass(c, cutOffUsed) ? "Pass" : "Fail",
     ]);
 
     autoTable(doc, {
-      head: [['Name', 'Total Score', 'Aptitude', 'Reasoning', 'Networks', 'Status']],
+      head: [
+        ["Name", "Total Score", "Aptitude", "Reasoning", "Networks", "Status"],
+      ],
       body: tableData,
       startY: 50,
     });
 
-    doc.save(`${exam.name.replace(/\s+/g, '_')}_Report.pdf`);
+    doc.save(`${exam.name.replace(/\s+/g, "_")}_Report.pdf`);
   };
 
   // ---- Candidate Table Component ----
@@ -181,21 +185,29 @@ const Report_Dashboard = () => {
     return (
       <table
         style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          border: '1px solid #333',
-          marginTop: '20px',
-          marginBottom: '20px',
+          width: "100%",
+          borderCollapse: "collapse",
+          border: "1px solid #333",
+          marginTop: "20px",
+          marginBottom: "20px",
         }}
       >
         <thead>
           <tr>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Name</th>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Total Score</th>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Aptitude</th>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Reasoning</th>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Networks</th>
-            <th style={{ border: '1px solid #333', padding: '8px' }}>Status</th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>Name</th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>
+              Total Score
+            </th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>
+              Aptitude
+            </th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>
+              Reasoning
+            </th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>
+              Networks
+            </th>
+            <th style={{ border: "1px solid #333", padding: "8px" }}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -204,23 +216,37 @@ const Report_Dashboard = () => {
               key={idx}
               onClick={() => setSelectedCandidate(c)}
               style={{
-                cursor: 'pointer',
+                cursor: "pointer",
                 backgroundColor:
                   selectedCandidate && selectedCandidate.name === c.name
-                    ? '#e6f7ff'
-                    : 'inherit',
+                    ? "#e6f7ff"
+                    : "inherit",
               }}
             >
-              <td style={{ border: '1px solid #333', padding: '8px' }}>{c.name}</td>
-              <td style={{ border: '1px solid #333', padding: '8px' }}>{c.score}</td>
-              <td style={{ border: '1px solid #333', padding: '8px' }}>{c.aptitude}</td>
-              <td style={{ border: '1px solid #333', padding: '8px' }}>{c.reasoning}</td>
-              <td style={{ border: '1px solid #333', padding: '8px' }}>{c.networks}</td>
-              <td style={{ border: '1px solid #333', padding: '8px' }}>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
+                {c.name}
+              </td>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
+                {c.score}
+              </td>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
+                {c.aptitude}
+              </td>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
+                {c.reasoning}
+              </td>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
+                {c.networks}
+              </td>
+              <td style={{ border: "1px solid #333", padding: "8px" }}>
                 {isPass(c, cutOff) ? (
-                  <span style={{ color: '#38A169', fontWeight: 'bold' }}>Pass</span>
+                  <span style={{ color: "#38A169", fontWeight: "bold" }}>
+                    Pass
+                  </span>
                 ) : (
-                  <span style={{ color: '#E53E3E', fontWeight: 'bold' }}>Fail</span>
+                  <span style={{ color: "#E53E3E", fontWeight: "bold" }}>
+                    Fail
+                  </span>
                 )}
               </td>
             </tr>
@@ -239,7 +265,9 @@ const Report_Dashboard = () => {
     setLoadingAssigned(true);
     setAssignedError(null);
     try {
-      const resp = await axios.get(`/api/dashboard/assignments/exam/${examId}/`);
+      const resp = await apiClient.get(
+        `/api/dashboard/assignments/exam/${examId}/`
+      );
       setAssignedUsers(resp.data);
     } catch (err) {
       setAssignedError("Failed to load assigned users.");
@@ -263,7 +291,12 @@ const Report_Dashboard = () => {
         {/* Success Rate Card */}
         <div className="card">
           <h2>Success Rate</h2>
-          <div className="stat-number" style={{ fontSize: '2.4rem', margin: '24px 0' }}>{successRate}</div>
+          <div
+            className="stat-number"
+            style={{ fontSize: "2.4rem", margin: "24px 0" }}
+          >
+            {successRate}
+          </div>
         </div>
 
         {/* Total Exams Card */}
@@ -288,7 +321,7 @@ const Report_Dashboard = () => {
       {/* Upcoming Exams Modal */}
       {showUpcomingModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Upcoming Exam Details</h2>
             {upcomingExams.length === 0 ? (
               <p>No upcoming exams.</p>
@@ -306,27 +339,33 @@ const Report_Dashboard = () => {
                   {upcomingExams.map((exam, idx) => (
                     <tr
                       key={idx}
-                      className={idx % 2 === 0 ? 'even-row' : 'odd-row'}
+                      className={idx % 2 === 0 ? "even-row" : "odd-row"}
                       style={{ cursor: "pointer" }}
                       onClick={() => handleExamRowClick(exam.exam_id)}
                       title="Show assigned people"
                     >
-                      <td>{exam.exam_title || '-'}</td>
+                      <td>{exam.exam_title || "-"}</td>
                       <td>
                         {exam.exam_start_time
                           ? new Date(exam.exam_start_time).toLocaleDateString()
-                          : '-'}
+                          : "-"}
                       </td>
                       <td>
                         {exam.exam_start_time
-                          ? new Date(exam.exam_start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                          : '-'}
+                          ? new Date(exam.exam_start_time).toLocaleTimeString(
+                              [],
+                              { hour: "2-digit", minute: "2-digit" }
+                            )
+                          : "-"}
                         {" - "}
                         {exam.exam_end_time
-                          ? new Date(exam.exam_end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                          : '-'}
+                          ? new Date(exam.exam_end_time).toLocaleTimeString(
+                              [],
+                              { hour: "2-digit", minute: "2-digit" }
+                            )
+                          : "-"}
                       </td>
-                      <td>{exam.location || '-'}</td>
+                      <td>{exam.location || "-"}</td>
                       <td>
                         <button onClick={() => handleExamRowClick(exam.id)}>
                           View Assignments
@@ -344,14 +383,18 @@ const Report_Dashboard = () => {
         </div>
       )}
 
-            {/* All Exams Table for Assignments */}
-            <h2>Exam Dashboard</h2>
+      {/* All Exams Table for Assignments */}
+      <h2>Exam Dashboard</h2>
       {loadingAllExams ? (
         <p>Loading exams...</p>
       ) : allExamsError ? (
-        <p style={{ color: 'red' }}>{allExamsError}</p>
+        <p style={{ color: "red" }}>{allExamsError}</p>
       ) : (
-        <table border="1" cellPadding="10" style={{ marginBottom: '20px', width: '100%' }}>
+        <table
+          border="1"
+          cellPadding="10"
+          style={{ marginBottom: "20px", width: "100%" }}
+        >
           <thead>
             <tr>
               <th>Exam ID</th>
@@ -375,16 +418,15 @@ const Report_Dashboard = () => {
         </table>
       )}
 
-
       {/* Assigned Users Modal */}
       {showAssignedModal && (
         <div className="modal-overlay" onClick={closeAssignedModal}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Assigned People</h2>
             {loadingAssigned ? (
               <p>Loading...</p>
             ) : assignedError ? (
-              <p style={{ color: 'red' }}>{assignedError}</p>
+              <p style={{ color: "red" }}>{assignedError}</p>
             ) : assignedUsers.length === 0 ? (
               <p>No users assigned to this exam.</p>
             ) : (
@@ -398,18 +440,24 @@ const Report_Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {assignedUsers.map(user => (
+                  {assignedUsers.map((user) => (
                     <tr key={user.assignment_id}>
                       <td>{user.user_id}</td>
-                      <td>{user.first_name} {user.last_name}</td>
+                      <td>
+                        {user.first_name} {user.last_name}
+                      </td>
                       <td>{user.email}</td>
-                      <td>{user.location || '-'}</td>
+                      <td>{user.location || "-"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
-            <button className="modal-back-button" onClick={closeAssignedModal} style={{marginTop: '20px'}}>
+            <button
+              className="modal-back-button"
+              onClick={closeAssignedModal}
+              style={{ marginTop: "20px" }}
+            >
               Close
             </button>
           </div>
@@ -419,7 +467,10 @@ const Report_Dashboard = () => {
       <h1 className="dashboard-title">Reporting</h1>
       <div className="report-filters">
         <label>Sort by Date:</label>
-        <select onChange={(e) => setSortOrder(e.target.value)} value={sortOrder}>
+        <select
+          onChange={(e) => setSortOrder(e.target.value)}
+          value={sortOrder}
+        >
           <option value="asc">Oldest First</option>
           <option value="desc">Newest First</option>
         </select>
@@ -467,14 +518,22 @@ const Report_Dashboard = () => {
                     type="number"
                     min="0"
                     max="100"
-                    value={customCutOff !== null ? customCutOff : selectedExam.cutOff}
+                    value={
+                      customCutOff !== null ? customCutOff : selectedExam.cutOff
+                    }
                     onChange={(e) => setCustomCutOff(Number(e.target.value))}
-                    style={{ padding: '5px', width: '80px' }}
+                    style={{ padding: "5px", width: "80px" }}
                   />
                 </label>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                  <div style={{ width: '45%' }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginTop: "20px",
+                  }}
+                >
+                  <div style={{ width: "45%" }}>
                     <h3>Pass/Fail Distribution</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
@@ -488,7 +547,10 @@ const Report_Dashboard = () => {
                           label
                         >
                           {getPieData(selectedExam).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
                           ))}
                         </Pie>
                         <Tooltip />
@@ -497,25 +559,37 @@ const Report_Dashboard = () => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div style={{ width: '50%' }}>
+                  <div style={{ width: "50%" }}>
                     {selectedCandidate ? (
                       <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
                           <h3>
                             Section-wise Scores
-                            <span style={{ fontSize: '0.9em', color: '#888', marginLeft: 10 }}>
+                            <span
+                              style={{
+                                fontSize: "0.9em",
+                                color: "#888",
+                                marginLeft: 10,
+                              }}
+                            >
                               ({selectedCandidate.name})
                             </span>
                           </h3>
                           <button
                             onClick={() => setSelectedCandidate(null)}
                             style={{
-                              padding: '2px 10px',
-                              fontSize: '0.9em',
-                              background: '#eee',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
+                              padding: "2px 10px",
+                              fontSize: "0.9em",
+                              background: "#eee",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px",
+                              cursor: "pointer",
                             }}
                           >
                             Show All
@@ -535,18 +609,33 @@ const Report_Dashboard = () => {
                         </ResponsiveContainer>
                       </>
                     ) : (
-                      <div style={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                        <span>Select a candidate to view section-wise scores</span>
+                      <div
+                        style={{
+                          height: 250,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#888",
+                        }}
+                      >
+                        <span>
+                          Select a candidate to view section-wise scores
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
                 <CandidateTable
                   exam={selectedExam}
-                  cutOff={customCutOff !== null ? customCutOff : selectedExam.cutOff}
+                  cutOff={
+                    customCutOff !== null ? customCutOff : selectedExam.cutOff
+                  }
                 />
 
-                <button className="download-button" onClick={() => exportToPDF(selectedExam)}>
+                <button
+                  className="download-button"
+                  onClick={() => exportToPDF(selectedExam)}
+                >
                   Download PDF
                 </button>
                 <button className="modal-back-button" onClick={closeModal}>

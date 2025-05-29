@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import "../../styles/register_module_css/App.css";
-import axios from 'axios';
+import axios from "axios";
+import { apiClient } from '../../config/api';
 
 const CandidateProfileForm = ({ userId }) => {
   const [candidate, setCandidate] = useState(null);
@@ -11,15 +12,19 @@ const CandidateProfileForm = ({ userId }) => {
     if (userId) {
       const token = localStorage.getItem("accessToken");
 
-      axios
-        .get(`http://localhost:8000/api/candidate/candidateList/?user_id=${userId}`, {
+      apiClient
+        .get(`/api/candidate/candidateList/?user_id=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then((res) => {
-          const internal = res.data.internal_candidates.find(c => c.user_id === userId);
-          const external = res.data.external_candidates.find(c => c.user_id === userId);
+          const internal = res.data.internal_candidates.find(
+            (c) => c.user_id === userId
+          );
+          const external = res.data.external_candidates.find(
+            (c) => c.user_id === userId
+          );
           const data = internal || external;
 
           if (data) {
@@ -46,7 +51,9 @@ const CandidateProfileForm = ({ userId }) => {
     <div className="signup-container">
       <div className="signup-text">
         <h1>Profile</h1>
-        <p>Manage your employee profile here. Only selected fields are editable.</p>
+        <p>
+          Manage your employee profile here. Only selected fields are editable.
+        </p>
       </div>
 
       <div className="signup-form outlined-form">
@@ -147,11 +154,15 @@ const CandidateProfileForm = ({ userId }) => {
           {candidate.highest_qualification && (
             <div className="input-row">
               <label>Qualification:</label>
-              <input type="text" value={candidate.highest_qualification} readOnly />
+              <input
+                type="text"
+                value={candidate.highest_qualification}
+                readOnly
+              />
             </div>
           )}
 
-          <div style={{ marginTop: '20px' }}>
+          <div style={{ marginTop: "20px" }}>
             <button type="submit">Modify</button>
           </div>
         </form>

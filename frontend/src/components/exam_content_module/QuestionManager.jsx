@@ -1,12 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-const API_BASE = 'http://localhost:8000/api/exam_content';
-const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+const API_BASE = "/api/exam_content";
+const SUBJECT_OPTIONS = [
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Computer Science",
+];
 
 const QuestionManagerPage = () => {
-  const [questionType, setQuestionType] = useState('mcq');
+  const [questionType, setQuestionType] = useState("mcq");
   const [questions, setQuestions] = useState([]);
-  const [filters, setFilters] = useState({ subject: '', difficulty: '' });
+  const [filters, setFilters] = useState({ subject: "", difficulty: "" });
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -24,11 +30,15 @@ const QuestionManagerPage = () => {
   }, [questionType, filters]);
 
   const deleteQuestion = async (id) => {
-    const confirm = window.confirm('Are you sure you want to delete this question?');
+    const confirm = window.confirm(
+      "Are you sure you want to delete this question?"
+    );
     if (!confirm) return;
-    const response = await fetch(`${API_BASE}/${questionType}/${id}/`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE}/${questionType}/${id}/`, {
+      method: "DELETE",
+    });
     if (response.status === 204) {
-      alert('Deleted successfully');
+      alert("Deleted successfully");
       fetchQuestions();
     }
   };
@@ -37,27 +47,37 @@ const QuestionManagerPage = () => {
     let tempErrors = {};
 
     // Common validation for all question types
-    if (!editingQuestion.question_text || editingQuestion.question_text.trim() === '') {
-      tempErrors.question_text = 'Question text cannot be empty';
+    if (
+      !editingQuestion.question_text ||
+      editingQuestion.question_text.trim() === ""
+    ) {
+      tempErrors.question_text = "Question text cannot be empty";
     }
 
-    if (questionType === 'mcq') {
+    if (questionType === "mcq") {
       if (editingQuestion.options.length < 2) {
-        tempErrors.options = 'At least two options are required';
+        tempErrors.options = "At least two options are required";
       }
 
       // Check if all option fields are filled
-      if (editingQuestion.options.some((opt) => !opt || opt.trim() === '')) {
-        tempErrors.options = 'All option fields must be filled';
+      if (editingQuestion.options.some((opt) => !opt || opt.trim() === "")) {
+        tempErrors.options = "All option fields must be filled";
       }
 
-      if (!editingQuestion.correct_answers || editingQuestion.correct_answers.length < 1) {
-        tempErrors.correct_answers = 'Please select at least one correct answer';
+      if (
+        !editingQuestion.correct_answers ||
+        editingQuestion.correct_answers.length < 1
+      ) {
+        tempErrors.correct_answers =
+          "Please select at least one correct answer";
       }
     } else {
       // Fill in the blank type validation
-      if (!editingQuestion.correct_answers || editingQuestion.correct_answers.trim() === '') {
-        tempErrors.correct_answers = 'Correct answer cannot be empty';
+      if (
+        !editingQuestion.correct_answers ||
+        editingQuestion.correct_answers.trim() === ""
+      ) {
+        tempErrors.correct_answers = "Correct answer cannot be empty";
       }
     }
 
@@ -69,18 +89,21 @@ const QuestionManagerPage = () => {
     if (!validate()) {
       return;
     }
-    const response = await fetch(`${API_BASE}/${questionType}/${editingQuestion.id}/`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editingQuestion),
-    });
+    const response = await fetch(
+      `${API_BASE}/${questionType}/${editingQuestion.id}/`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingQuestion),
+      }
+    );
     if (response.ok) {
-      alert('Updated successfully!');
+      alert("Updated successfully!");
       setEditingQuestion(null);
       fetchQuestions();
       setErrors({});
     } else {
-      alert('Update failed');
+      alert("Update failed");
     }
   };
 
@@ -103,16 +126,20 @@ const QuestionManagerPage = () => {
   const addOption = () => {
     setEditingQuestion({
       ...editingQuestion,
-      options: [...(editingQuestion.options || []), ''],
+      options: [...(editingQuestion.options || []), ""],
     });
   };
 
   const deleteOption = (idx) => {
     const newOptions = editingQuestion.options.filter((_, i) => i !== idx);
-    const newCorrect = (editingQuestion.correct_answers || []).filter(
-      (ans) => newOptions.includes(ans)
+    const newCorrect = (editingQuestion.correct_answers || []).filter((ans) =>
+      newOptions.includes(ans)
     );
-    setEditingQuestion({ ...editingQuestion, options: newOptions, correct_answers: newCorrect });
+    setEditingQuestion({
+      ...editingQuestion,
+      options: newOptions,
+      correct_answers: newCorrect,
+    });
   };
 
   const renderEditForm = () => (
@@ -121,12 +148,19 @@ const QuestionManagerPage = () => {
       <textarea
         rows={4}
         value={editingQuestion.question_text}
-        onChange={(e) => setEditingQuestion({ ...editingQuestion, question_text: e.target.value })}
+        onChange={(e) =>
+          setEditingQuestion({
+            ...editingQuestion,
+            question_text: e.target.value,
+          })
+        }
         className="text-area"
       />
-      {errors.question_text && <div className="error">{errors.question_text}</div>}
+      {errors.question_text && (
+        <div className="error">{errors.question_text}</div>
+      )}
 
-      {questionType === 'mcq' ? (
+      {questionType === "mcq" ? (
         <>
           <label>Options:</label>
           {editingQuestion.options.map((opt, idx) => (
@@ -154,8 +188,14 @@ const QuestionManagerPage = () => {
             </div>
           ))}
           {errors.options && <div className="error">{errors.options}</div>}
-          {errors.correct_answers && <div className="error">{errors.correct_answers}</div>}
-          <button className="add-option-button" type="button" onClick={addOption}>
+          {errors.correct_answers && (
+            <div className="error">{errors.correct_answers}</div>
+          )}
+          <button
+            className="add-option-button"
+            type="button"
+            onClick={addOption}
+          >
             Add Option
           </button>
         </>
@@ -165,16 +205,33 @@ const QuestionManagerPage = () => {
           <input
             type="text"
             value={editingQuestion.correct_answers}
-            onChange={(e) => setEditingQuestion({ ...editingQuestion, correct_answers: e.target.value })}
+            onChange={(e) =>
+              setEditingQuestion({
+                ...editingQuestion,
+                correct_answers: e.target.value,
+              })
+            }
             className="text-input"
           />
-          {errors.correct_answers && <div className="error">{errors.correct_answers}</div>}
+          {errors.correct_answers && (
+            <div className="error">{errors.correct_answers}</div>
+          )}
         </>
       )}
 
       <div className="button-group">
-        <button className="update-button" onClick={updateQuestion}>Update</button>
-        <button className="cancel-button" onClick={() => { setEditingQuestion(null); setErrors({}); }}>Cancel</button>
+        <button className="update-button" onClick={updateQuestion}>
+          Update
+        </button>
+        <button
+          className="cancel-button"
+          onClick={() => {
+            setEditingQuestion(null);
+            setErrors({});
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -185,7 +242,11 @@ const QuestionManagerPage = () => {
       <div className="filter-container">
         <label>
           Question Type:
-          <select value={questionType} onChange={(e) => setQuestionType(e.target.value)} className="filter-select">
+          <select
+            value={questionType}
+            onChange={(e) => setQuestionType(e.target.value)}
+            className="filter-select"
+          >
             <option value="mcq">MCQ</option>
             <option value="fill">Fill in the Blank</option>
           </select>
@@ -193,17 +254,31 @@ const QuestionManagerPage = () => {
 
         <label>
           Subject:
-          <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} className="filter-select">
+          <select
+            value={filters.subject}
+            onChange={(e) =>
+              setFilters({ ...filters, subject: e.target.value })
+            }
+            className="filter-select"
+          >
             <option value="">All</option>
             {SUBJECT_OPTIONS.map((subj, i) => (
-              <option key={i} value={subj}>{subj}</option>
+              <option key={i} value={subj}>
+                {subj}
+              </option>
             ))}
           </select>
         </label>
 
         <label>
           Difficulty:
-          <select value={filters.difficulty} onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })} className="filter-select">
+          <select
+            value={filters.difficulty}
+            onChange={(e) =>
+              setFilters({ ...filters, difficulty: e.target.value })
+            }
+            className="filter-select"
+          >
             <option value="">All</option>
             <option value="Easy">Easy</option>
             <option value="Medium">Medium</option>
@@ -213,10 +288,16 @@ const QuestionManagerPage = () => {
       </div>
 
       {editingQuestion && (
-        <div 
-          className="overlay" 
-          onClick={() => { setEditingQuestion(null); setErrors({}); }}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>{renderEditForm()}</div>
+        <div
+          className="overlay"
+          onClick={() => {
+            setEditingQuestion(null);
+            setErrors({});
+          }}
+        >
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            {renderEditForm()}
+          </div>
         </div>
       )}
 
@@ -243,15 +324,30 @@ const QuestionManagerPage = () => {
                   <td>{q.marks}</td>
                   <td>
                     <div className="action-buttons">
-                      <button className="edit-button" onClick={() => setEditingQuestion(q)}>Edit</button>
-                      <button className="delete-button" onClick={() => deleteQuestion(q.id)}>Delete</button>
+                      <button
+                        className="edit-button"
+                        onClick={() => setEditingQuestion(q)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => deleteQuestion(q.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>No questions available for selected filters.</td>
+                <td
+                  colSpan="6"
+                  style={{ textAlign: "center", padding: "1rem" }}
+                >
+                  No questions available for selected filters.
+                </td>
               </tr>
             )}
           </tbody>
@@ -400,6 +496,6 @@ h2 {
 }
 `;
 
-const styleElement = document.createElement('style');
+const styleElement = document.createElement("style");
 styleElement.innerHTML = styles;
 document.head.appendChild(styleElement);

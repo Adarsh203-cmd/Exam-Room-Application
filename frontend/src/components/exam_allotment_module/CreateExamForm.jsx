@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import "../../styles/exam_allotment_module_css/CreateExamForm.css";
+import { apiClient } from '../../config/api';
 
 const CreateExamForm = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const CreateExamForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/exam_allotment/subjects/')
+    apiClient.get('/api/exam_allotment/subjects/')
       .then(res => setAllSubjects(res.data || []))
       .catch(err => console.error('Failed to fetch subjects:', err));
   }, []);
@@ -64,7 +64,7 @@ const fetchQuestions = async (subject, latestCounts) => {
   setIsLoading(true);
   
   try {
-    const res = await axios.get('/api/exam_allotment/random-questions/', {
+    const res = await apiClient.get('/api/exam_allotment/random-questions/', {
       params: { subject, mcq_count: mcq, fib_count: fib }
     });
     
@@ -175,7 +175,7 @@ const fetchQuestions = async (subject, latestCounts) => {
     
     console.log('Payload being sent:', payload); // Debug log
     
-    const examRes = await axios.post('/api/exam_allotment/exams/', payload);
+    const examRes = await apiClient.post('/api/exam_allotment/exams/', payload);
     const exam = examRes.data;
     navigate(`/select-candidates/${exam.exam_token}`);
   } catch (err) {

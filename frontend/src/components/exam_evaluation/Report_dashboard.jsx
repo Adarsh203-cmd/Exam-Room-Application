@@ -1,41 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import DashboardCards from './DashboardCards';
-import ExamReporting from './ExamReporting';
-import ExamDetailsModal from './ExamDetailsModal';
-import '../../styles/Exam_evaluation/Report_dashboard.css';
+import React, { useState, useEffect } from "react";
+import DashboardCards from "./DashboardCards";
+import ExamReporting from "./ExamReporting";
+import ExamDetailsModal from "./ExamDetailsModal";
+import "../../styles/Exam_evaluation/Report_dashboard.css";
+import { apiClient } from '../../config/api';
 
 const Report_Dashboard = () => {
   // States for main data
   const [examReports, setExamReports] = useState([]);
   const [uniqueEvaluatedExams, setUniqueEvaluatedExams] = useState([]);
   const [successRateData, setSuccessRateData] = useState([
-    { name: 'Success', value: 0 },
-    { name: 'Failure', value: 100 }
+    { name: "Success", value: 0 },
+    { name: "Failure", value: 100 },
   ]);
   const [totalExams, setTotalExams] = useState(0);
   const [upcomingExams, setUpcomingExams] = useState(0);
   const [allExams, setAllExams] = useState([]);
   const [upcomingExamsList, setUpcomingExamsList] = useState([]);
-  
+
   // States for modal and UI interaction
   const [popupData, setPopupData] = useState({
     success: null,
     examStats: null,
     upcoming: null,
-    current: null
+    current: null,
   });
   const [selectedExam, setSelectedExam] = useState(null);
   const [customCutOff, setCustomCutOff] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc');
-  
+  const [sortOrder, setSortOrder] = useState("asc");
+
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // API endpoints
-  const API_BASE_URL = 'http://localhost:8000/api';
+  const API_BASE_URL = "/api";
   const EXAMS_URL = `${API_BASE_URL}/evaluation/exams`;
   const STATS_URL = `${API_BASE_URL}/evaluation/dashboard-stats`;
   const ALL_EXAMS_URL = `${API_BASE_URL}/evaluation/all-exams`;
@@ -53,31 +53,36 @@ const Report_Dashboard = () => {
   // Function to determine if a candidate passes based on cutoff
   const isPass = (candidate, cutOff) => {
     if (!candidate) return false;
-    
+
     // Check if candidate meets the overall score requirement
     if (candidate.score < cutOff) return false;
-    
+
     // If we have subject scores, check each subject against the cutoff
     if (candidate.subjectScores) {
       const subjectScores = Object.values(candidate.subjectScores);
       // Candidate fails if any subject score is below cutoff
-      if (subjectScores.some(score => score < cutOff)) return false;
+      if (subjectScores.some((score) => score < cutOff)) return false;
     }
-    
+
     // Check traditional subject properties
-    const traditionalSubjects = ['aptitude', 'reasoning', 'networks'];
+    const traditionalSubjects = ["aptitude", "reasoning", "networks"];
     for (const subject of traditionalSubjects) {
       if (candidate[subject] !== undefined && candidate[subject] < cutOff) {
         return false;
       }
     }
-    
+
     // If we get here, candidate passes
     return true;
   };
 
   // Initialize popup data for the dashboard cards
-  const initializePopupData = (successRate, totalExamsCount, allExamsData, upcomingExamsList) => {
+  const initializePopupData = (
+    successRate,
+    totalExamsCount,
+    allExamsData,
+    upcomingExamsList
+  ) => {
     if (!upcomingExamsList || !Array.isArray(upcomingExamsList)) {
       console.error("upcomingExamsList is not an array:", upcomingExamsList);
       upcomingExamsList = [];
@@ -85,7 +90,7 @@ const Report_Dashboard = () => {
 
     setPopupData({
       success: {
-        title: 'Success Rate Details',
+        title: "Success Rate Details",
         content: (
           <>
             <p>Overall Success Rate: {successRate}%</p>
@@ -93,23 +98,55 @@ const Report_Dashboard = () => {
         ),
       },
       examStats: {
-        title: 'Exam Stats',
+        title: "Exam Stats",
         content: (
           <>
             <p>Total Exams: {totalExamsCount}</p>
-            <div style={{ marginTop: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+            <div
+              style={{
+                marginTop: "20px",
+                maxHeight: "400px",
+                overflowY: "auto",
+              }}
+            >
               <h3>All Exams</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Exam Name</th>
-                    <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Date</th>
-                    <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Status</th>
+                    <th
+                      style={{
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        textAlign: "left",
+                      }}
+                    >
+                      Exam Name
+                    </th>
+                    <th
+                      style={{
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        textAlign: "left",
+                      }}
+                    >
+                      Date
+                    </th>
+                    <th
+                      style={{
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        textAlign: "left",
+                      }}
+                    >
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {allExamsData.map((exam, index) => {
-                    const examDate = new Date(exam.exam_start_time || exam.date);
+                    const examDate = new Date(
+                      exam.exam_start_time || exam.date
+                    );
                     const now = new Date();
                     let status = "Completed";
                     if (examDate > now) {
@@ -117,12 +154,24 @@ const Report_Dashboard = () => {
                     } else if (examDate.toDateString() === now.toDateString()) {
                       status = "Today";
                     }
-                    
+
                     return (
                       <tr key={index}>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{exam.name || exam.title || "Unnamed Exam"}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{examDate.toLocaleDateString()}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{status}</td>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
+                          {exam.name || exam.title || "Unnamed Exam"}
+                        </td>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
+                          {examDate.toLocaleDateString()}
+                        </td>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
+                          {status}
+                        </td>
                       </tr>
                     );
                   })}
@@ -133,66 +182,162 @@ const Report_Dashboard = () => {
         ),
       },
       upcoming: {
-        title: 'Upcoming Exams',
+        title: "Upcoming Exams",
         content: (
           <>
             <p>Upcoming Exams: {upcomingExamsList.length}</p>
-            <div style={{ marginTop: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+            <div
+              style={{
+                marginTop: "20px",
+                maxHeight: "400px",
+                overflowY: "auto",
+              }}
+            >
               <h3>Upcoming Exam Schedule</h3>
               {upcomingExamsList && upcomingExamsList.length > 0 ? (
                 <>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                       <tr>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Exam Name</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Date</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Time</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Candidates</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Details</th>
-                        <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Assign</th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Exam Name
+                        </th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Date
+                        </th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Time
+                        </th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Candidates
+                        </th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Details
+                        </th>
+                        <th
+                          style={{
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            textAlign: "left",
+                          }}
+                        >
+                          Assign
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {upcomingExamsList.map((exam, index) => {
-                        const examDate = new Date(exam.exam_start_time || exam.date);
-                        const candidatesCount = exam.candidates ? exam.candidates.length : 0;
+                        const examDate = new Date(
+                          exam.exam_start_time || exam.date
+                        );
+                        const candidatesCount = exam.candidates
+                          ? exam.candidates.length
+                          : 0;
                         return (
                           <tr key={index}>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>{exam.name || exam.title || "Unnamed Exam"}</td>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>{examDate.toLocaleDateString()}</td>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>{examDate.toLocaleTimeString()}</td>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>{candidatesCount}</td>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                              <button 
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              {exam.name || exam.title || "Unnamed Exam"}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              {examDate.toLocaleDateString()}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              {examDate.toLocaleTimeString()}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              {candidatesCount}
+                            </td>
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   showCandidatesPopup(exam, examDate);
                                 }}
                                 style={{
-                                  background: '#007BFF',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '5px 10px',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer'
+                                  background: "#007BFF",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "5px 10px",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
                                 }}
                               >
                                 View Candidates
                               </button>
                             </td>
-                            <td style={{ padding: '8px', border: '1px solid #ddd' }}>
-                              <button 
+                            <td
+                              style={{
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                              }}
+                            >
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleAssignCandidates(exam.exam_token);
                                 }}
                                 style={{
-                                  background: '#28a745',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '5px 10px',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer'
+                                  background: "#28a745",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "5px 10px",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
                                 }}
                               >
                                 Assign Candidates
@@ -211,7 +356,7 @@ const Report_Dashboard = () => {
           </>
         ),
       },
-      current: null
+      current: null,
     });
   };
 
@@ -219,17 +364,17 @@ const Report_Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch exam reports for evaluated exams
-        const examsResponse = await axios.get(EXAMS_URL);
+        const examsResponse = await apiClient.get(EXAMS_URL);
 
         // Process exam reports to consolidate by exam ID
         const examsMap = {};
-        examsResponse.data.forEach(exam => {
+        examsResponse.data.forEach((exam) => {
           if (!examsMap[exam.id]) {
             examsMap[exam.id] = {
               ...exam,
-              candidates: [exam.candidates[0]]
+              candidates: [exam.candidates[0]],
             };
           } else {
             examsMap[exam.id].candidates.push(exam.candidates[0]);
@@ -238,20 +383,23 @@ const Report_Dashboard = () => {
 
         // Convert the map back to an array
         const uniqueExams = Object.values(examsMap);
-        
+
         // Fetch detailed information for each exam including subject scores
         const processedExams = [];
         for (const exam of uniqueExams) {
           try {
             // Try to fetch detailed exam information with subject scores
-            const detailsResponse = await axios.get(`${API_BASE_URL}/evaluation/exam-details/${exam.id}/`);
-            
+            const detailsResponse = await apiClient.get(
+              `${API_BASE_URL}/evaluation/exam-details/${exam.id}/`
+            );
+
             if (detailsResponse.data) {
               // We have detailed data with subject scores
               processedExams.push({
                 ...exam,
                 candidates: detailsResponse.data.candidates || exam.candidates,
-                subject_statistics: detailsResponse.data.subject_statistics || []
+                subject_statistics:
+                  detailsResponse.data.subject_statistics || [],
               });
             } else {
               // Fall back to the original exam data
@@ -263,16 +411,16 @@ const Report_Dashboard = () => {
             processedExams.push(exam);
           }
         }
-        
+
         setUniqueEvaluatedExams(processedExams);
-        
+
         // For backward compatibility, keep the original reports in state too
         setExamReports(examsResponse.data);
-          
+
         // Fetch all exams from exam_creation table
         let allExamsResponse;
         try {
-          allExamsResponse = await axios.get(ALL_EXAMS_URL);
+          allExamsResponse = await apiClient.get(ALL_EXAMS_URL);
           setAllExams(allExamsResponse.data);
         } catch (err) {
           console.error("Error fetching all exams:", err);
@@ -284,55 +432,56 @@ const Report_Dashboard = () => {
         // Now includes candidates directly in the response
         let upcomingExamsData = [];
         try {
-          const upcomingExamsResponse = await axios.get(UPCOMING_EXAMS_URL);
-          
+          const upcomingExamsResponse = await apiClient.get(UPCOMING_EXAMS_URL);
+
           // Debug output to check the structure of the response
           console.log("Upcoming exams response:", upcomingExamsResponse.data);
-          
+
           // Ensure we have an array of upcoming exams
-          upcomingExamsData = Array.isArray(upcomingExamsResponse.data) ? upcomingExamsResponse.data : [];
-          
+          upcomingExamsData = Array.isArray(upcomingExamsResponse.data)
+            ? upcomingExamsResponse.data
+            : [];
+
           // Log each exam to check if candidates are included
           upcomingExamsData.forEach((exam, index) => {
             console.log(`Exam ${index}:`, exam);
             console.log(`Candidates for exam ${index}:`, exam.candidates || []);
           });
-          
         } catch (err) {
           console.error("Error fetching upcoming exams:", err);
           // If endpoint isn't available, calculate upcoming exams from all exams
           const now = new Date();
-          upcomingExamsData = allExamsResponse?.data?.filter(exam => 
-            new Date(exam.exam_start_time || exam.date) > now
-          ) || [];
+          upcomingExamsData =
+            allExamsResponse?.data?.filter(
+              (exam) => new Date(exam.exam_start_time || exam.date) > now
+            ) || [];
         }
-        
+
         // Store upcoming exams in state
         setUpcomingExamsList(upcomingExamsData);
         setUpcomingExams(upcomingExamsData.length);
 
         // Fetch dashboard statistics
-        const statsResponse = await axios.get(STATS_URL);
+        const statsResponse = await apiClient.get(STATS_URL);
         const { success_rate, total_exams } = statsResponse.data;
-        
+
         // If we have allExams, use that count instead
         const actualTotalExams = allExamsResponse?.data?.length || total_exams;
         setTotalExams(actualTotalExams);
 
         // Set success rate data for pie chart
         setSuccessRateData([
-          { name: 'Success', value: success_rate },
-          { name: 'Failure', value: 100 - success_rate }
+          { name: "Success", value: success_rate },
+          { name: "Failure", value: 100 - success_rate },
         ]);
 
         // Prepare popup content for dashboard cards - do this after setting all state
         initializePopupData(
-          success_rate, 
-          actualTotalExams, 
+          success_rate,
+          actualTotalExams,
           allExamsResponse?.data || [],
           upcomingExamsData
         );
-          
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError("Failed to load dashboard data. Please try again later.");
@@ -343,7 +492,7 @@ const Report_Dashboard = () => {
 
     // Always fetch data when component mounts
     fetchDashboardData();
-    
+
     // Add cleanup function to prevent state updates on unmounted component
     return () => {
       // This will run when the component unmounts
@@ -354,36 +503,79 @@ const Report_Dashboard = () => {
   const showCandidatesPopup = (exam, examDate) => {
     // Get the candidates array from the exam object
     const candidates = exam.candidates || [];
-    
+
     console.log("Showing candidates for exam:", exam);
     console.log("Candidates:", candidates);
-    
-    setPopupData(prev => ({
+
+    setPopupData((prev) => ({
       ...prev,
       current: {
         title: `Candidates for ${exam.name || exam.title}`,
         content: (
           <>
-            <p>Exam Date: {examDate.toLocaleDateString()} at {examDate.toLocaleTimeString()}</p>
-            <div style={{ marginTop: '20px', maxHeight: '400px', overflowY: 'auto' }}>
+            <p>
+              Exam Date: {examDate.toLocaleDateString()} at{" "}
+              {examDate.toLocaleTimeString()}
+            </p>
+            <div
+              style={{
+                marginTop: "20px",
+                maxHeight: "400px",
+                overflowY: "auto",
+              }}
+            >
               <h3>Assigned Candidates</h3>
               {candidates && candidates.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
-                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Name</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>Email</th>
-                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>User ID</th>
+                      <th
+                        style={{
+                          padding: "8px",
+                          border: "1px solid #ddd",
+                          textAlign: "left",
+                        }}
+                      >
+                        Name
+                      </th>
+                      <th
+                        style={{
+                          padding: "8px",
+                          border: "1px solid #ddd",
+                          textAlign: "left",
+                        }}
+                      >
+                        Email
+                      </th>
+                      <th
+                        style={{
+                          padding: "8px",
+                          border: "1px solid #ddd",
+                          textAlign: "left",
+                        }}
+                      >
+                        User ID
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {candidates.map((candidate, idx) => (
                       <tr key={idx}>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
                           {candidate.name}
                         </td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{candidate.email}</td>
-                        <td style={{ padding: '8px', border: '1px solid #ddd' }}>{candidate.user_id}</td>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
+                          {candidate.email}
+                        </td>
+                        <td
+                          style={{ padding: "8px", border: "1px solid #ddd" }}
+                        >
+                          {candidate.user_id}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -392,29 +584,32 @@ const Report_Dashboard = () => {
                 <p>No candidates assigned to this exam yet.</p>
               )}
             </div>
-            <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-              <button className="modal-back-button" onClick={() => 
-                setPopupData(prev => ({ ...prev, current: prev.upcoming }))
-              }>
+            <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+              <button
+                className="modal-back-button"
+                onClick={() =>
+                  setPopupData((prev) => ({ ...prev, current: prev.upcoming }))
+                }
+              >
                 BACK TO EXAMS
               </button>
-              <button 
+              <button
                 onClick={() => handleAssignCandidates(exam.exam_token)}
                 style={{
-                  background: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 15px',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
+                  background: "#28a745",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 15px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
                 }}
               >
                 ASSIGN MORE CANDIDATES
               </button>
             </div>
           </>
-        )
-      }
+        ),
+      },
     }));
   };
 
@@ -422,15 +617,15 @@ const Report_Dashboard = () => {
   const handlePopup = (type) => {
     console.log("Handling popup:", type);
     console.log("Current upcomingExamsList:", upcomingExamsList);
-    
+
     switch (type) {
-      case 'success':
-        setPopupData(prev => ({ ...prev, current: prev.success }));
+      case "success":
+        setPopupData((prev) => ({ ...prev, current: prev.success }));
         break;
-      case 'examStats':
-        setPopupData(prev => ({ ...prev, current: prev.examStats }));
+      case "examStats":
+        setPopupData((prev) => ({ ...prev, current: prev.examStats }));
         break;
-      case 'upcoming':
+      case "upcoming":
         // Re-initialize the upcoming popup data before showing
         initializePopupData(
           successRateData[0].value,
@@ -438,7 +633,7 @@ const Report_Dashboard = () => {
           allExams,
           upcomingExamsList
         );
-        setPopupData(prev => ({ ...prev, current: prev.upcoming }));
+        setPopupData((prev) => ({ ...prev, current: prev.upcoming }));
         break;
       default:
         break;
@@ -447,7 +642,7 @@ const Report_Dashboard = () => {
 
   // Close modal
   const closeModal = () => {
-    setPopupData(prev => ({ ...prev, current: null }));
+    setPopupData((prev) => ({ ...prev, current: null }));
     setSelectedExam(null);
     setCustomCutOff(null);
     setSelectedCandidate(null);
@@ -456,20 +651,20 @@ const Report_Dashboard = () => {
   // When an exam is selected, prepare and fetch additional data
   const prepareExamSelection = (exam) => {
     if (!exam) return;
-    
+
     // Make sure we fetch the exam statistics and subject data if not done already
     setSelectedExam({
       ...exam,
       // Ensure consistent data structures
-      candidates: exam.candidates.map(candidate => {
+      candidates: exam.candidates.map((candidate) => {
         // Make sure candidate has a subjectScores object
         return {
           ...candidate,
-          subjectScores: candidate.subjectScores || {}
+          subjectScores: candidate.subjectScores || {},
         };
-      })
+      }),
     });
-    
+
     // Reset customCutOff and selectedCandidate when selecting a new exam
     setCustomCutOff(exam.cutOff);
     setSelectedCandidate(null);
@@ -488,7 +683,7 @@ const Report_Dashboard = () => {
       <h1 className="dashboard-title">Dashboard</h1>
 
       {/* Dashboard Cards Component */}
-      <DashboardCards 
+      <DashboardCards
         successRateData={successRateData}
         totalExams={totalExams}
         upcomingExams={upcomingExams}
@@ -496,9 +691,9 @@ const Report_Dashboard = () => {
       />
 
       <h1 className="dashboard-title">Reporting</h1>
-      
+
       {/* Exam Reporting Component */}
-      <ExamReporting 
+      <ExamReporting
         examReports={uniqueEvaluatedExams}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import axios from "axios";
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -8,10 +8,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
   useEffect(() => {
     const verifyAuthentication = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      const role = localStorage.getItem('role');
-      const examToken = localStorage.getItem('examToken');
-      
+      const accessToken = localStorage.getItem("accessToken");
+      const role = localStorage.getItem("role");
+      const examToken = localStorage.getItem("examToken");
+
       // No token, not authenticated
       if (!accessToken) {
         console.log("No access token found");
@@ -23,13 +23,19 @@ const ProtectedRoute = ({ children, allowedRole }) => {
       // Check if role matches allowed role
       if (Array.isArray(allowedRole)) {
         if (!allowedRole.includes(role)) {
-          console.log(`Access denied: User role ${role} not in allowed roles [${allowedRole.join(', ')}]`);
+          console.log(
+            `Access denied: User role ${role} not in allowed roles [${allowedRole.join(
+              ", "
+            )}]`
+          );
           setIsAuthenticated(false);
           setLoading(false);
           return;
         }
-      } else if (allowedRole !== role && allowedRole !== '*') {
-        console.log(`Access denied: User role ${role} doesn't match required role ${allowedRole}`);
+      } else if (allowedRole !== role && allowedRole !== "*") {
+        console.log(
+          `Access denied: User role ${role} doesn't match required role ${allowedRole}`
+        );
         setIsAuthenticated(false);
         setLoading(false);
         return;
@@ -37,42 +43,39 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
       try {
         // Check if this is an exam session (both internal and external candidates can take exams)
-        if (examToken && (role === 'external' || role === 'internal')) {
+        if (examToken && (role === "external" || role === "internal")) {
           // For exam takers, verify by fetching exam questions
-          await axios.get(
-            `http://127.0.0.1:8000/api/exam-view/fetch-questions/?exam_token=${examToken}`,
+          await apiClient.get(
+            `/api/exam-view/fetch-questions/?exam_token=${examToken}`,
             {
               headers: {
-                'Authorization': `Bearer ${accessToken}`
-              }
+                Authorization: `Bearer ${accessToken}`,
+              },
             }
           );
         } else {
           // For other users or non-exam sessions, verify their profile
-          await axios.get(
-            'http://127.0.0.1:8000/api/candidate/profile/',
-            {
-              headers: {
-                'Authorization': `Bearer ${accessToken}`
-              }
-            }
-          );
+          await apiClient.get("/api/candidate/profile/", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
         }
-        
+
         // If the request succeeded, token is valid
         setIsAuthenticated(true);
         setLoading(false);
       } catch (error) {
         console.log("Authentication failed:", error.message);
-        
+
         // Clear all authentication data
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('role');
-        localStorage.removeItem('examToken');
-        localStorage.removeItem('attemptId');
-        localStorage.removeItem('candidateId');
-        
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("role");
+        localStorage.removeItem("examToken");
+        localStorage.removeItem("attemptId");
+        localStorage.removeItem("candidateId");
+
         setIsAuthenticated(false);
         setLoading(false);
       }
