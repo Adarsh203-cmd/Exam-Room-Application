@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { apiClient } from '../../config/api';
 
 const CandidateTable = ({ candidates, onUpdate, onDelete }) => (
   <div style={{ width: '100%', padding: '1rem', overflowY: 'auto', maxHeight: '90vh' }}>
@@ -52,7 +53,7 @@ const Candidate_Management = () => {
   const fetchCandidates = async () => {
     const url = `/api/candidate/${candidateType}-candidates/?search=${search}`;
     try {
-      const res = await axios.get(url);
+      const res = await apiClient.get(url);
       setCandidates(res.data);
     } catch (error) {
       console.error('Error fetching candidates:', error);

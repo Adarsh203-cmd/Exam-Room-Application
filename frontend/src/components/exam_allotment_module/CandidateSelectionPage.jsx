@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import '../../styles/exam_allotment_module_css/CandidateSelectionPage.css';
+import { apiClient } from '../../config/api';
 
 const CandidateSelectionPage = () => {
   const { examToken } = useParams();
@@ -11,7 +12,7 @@ const CandidateSelectionPage = () => {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    axios.get("/api/exam_allotment/select-candidates/")
+    apiClient.get("/api/exam_allotment/select-candidates/")
       .then(res => setCandidates(res.data))
       .catch(err => console.error("Error fetching candidates:", err));
   }, []);
@@ -35,7 +36,7 @@ const CandidateSelectionPage = () => {
 
     setIsSending(true);
 
-    axios.post("/api/exam_allotment/select-candidates/", {
+    apiClient.post("/api/exam_allotment/select-candidates/", {
       exam_token: examToken,
       selected_candidates: selectedCandidates
     })

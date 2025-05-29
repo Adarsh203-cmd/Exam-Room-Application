@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { ThreeDots } from 'react-loader-spinner';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ThreeDots } from "react-loader-spinner";
 import "../../styles/register_module_css/App.css";
+import { apiClient } from '../../config/api';
 
 const OTPVerification = () => {
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -27,13 +27,14 @@ const OTPVerification = () => {
       user_type: storedData.user_type,
     };
 
-    
-
-    console.log('Sending Payload:', payload); 
+    console.log("Sending Payload:", payload);
 
     try {
       setLoading(true);
-      const res = await axios.post("http://127.0.0.1:8000/api/candidate/verify-otp-register/", payload);
+      const res = await apiClient.post(
+        "/api/candidate/verify-otp-register/",
+        payload
+      );
       if (res.status === 201 || res.status === 200) {
         alert("Registration successful!");
         localStorage.removeItem("userData");
@@ -50,7 +51,10 @@ const OTPVerification = () => {
   return (
     <div className="signup-container">
       <div className="signup-text">
-        <h1>Welcome to <br /><span>Elogixa Technology India Pvt Ltd</span></h1>
+        <h1>
+          Welcome to <br />
+          <span>Elogixa Technology India Pvt Ltd</span>
+        </h1>
       </div>
 
       <div className="signup-form outlined-form">
