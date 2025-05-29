@@ -57,11 +57,13 @@ def evaluate_exam(request, attempt_id):
             subject_scores = defaultdict(lambda: {'obtained': 0, 'total': 0})
             
             # Create a new result record
-            result = ExamResult.objects.create(
-                attempt=attempt,
-                total_marks_obtained=0,  # Will update later
-                total_marks_possible=0   # Will update later
-            )
+            result, created = ExamResult.objects.update_or_create(
+            attempt=attempt,
+            defaults={
+             'total_marks_obtained': 0,
+            'total_marks_possible': 0
+           }
+           )
             
             # Evaluate MCQ answers
             mcq_answers = MCQAnswer.objects.filter(attempt=attempt).select_related('question')
@@ -89,7 +91,7 @@ def evaluate_exam(request, attempt_id):
                 subject_scores[subject]['obtained'] += marks_obtained
                 
                 # Store question result
-                QuestionResult.objects.create(
+                QuestionResult.objects.update_or_create(
                     exam_result=result,
                     subject=subject,
                     question_type='MCQ',
@@ -117,7 +119,7 @@ def evaluate_exam(request, attempt_id):
                 subject_scores[subject]['obtained'] += marks_obtained
                 
                 # Store question result
-                QuestionResult.objects.create(
+                QuestionResult.objects.update_or_create(
                     exam_result=result,
                     subject=subject,
                     question_type='FIB',
@@ -134,7 +136,7 @@ def evaluate_exam(request, attempt_id):
             
             # Create subject-wise results
             for subject, scores in subject_scores.items():
-                SubjectWiseResult.objects.create(
+                SubjectWiseResult.objects.update_or_create(
                     exam_result=result,
                     subject=subject,
                     marks_obtained=scores['obtained'],

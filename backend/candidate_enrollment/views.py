@@ -18,7 +18,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .filters import CandidateFilter
 from django.core.cache import cache
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 #from .utils import generate_otp 
+
+from rest_framework import generics
 
 #Candidate Registration
 class CandidateRegisterView(APIView):
@@ -42,24 +46,25 @@ class CandidateRegisterView(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                # Send email with raw password
-                message = (
-                    f"Hello {data['first_name']} {data['last_name']},\n\n"
-                    f"Thank you for registering for the Exam Portal at Elogixa.\n\n"
-                    f"Here are your login credentials:\n"
-                    f"User ID: {user_id}\n"
-                    f"Password: {raw_password}\n\n"
-                    f"Please keep this information safe and do not share it with anyone.\n\n"
-                    f"Best regards,\nElogixa Team"
-                )
-
-                send_mail(
+                # Send email with HTML template
+                context = {
+                    'first_name': data['first_name'],
+                    'last_name': data['last_name'],
+                    'user_id': user_id,
+                    'password': raw_password,
+                     "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+                }
+                
+                html_content = render_to_string('emails/registration.html', context)
+                
+                msg = EmailMultiAlternatives(
                     subject="Exam Portal Registration Details",
-                    message=message,
+                    body="",  # Plain text body (empty since we're using HTML)
                     from_email="noreply@example.com",
-                    recipient_list=[data['email']],
-                    fail_silently=False,
+                    to=[data['email']]
                 )
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
 
                 return Response({"message": "External candidate registered successfully."}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -80,24 +85,25 @@ class CandidateRegisterView(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-                # Send email with raw password
-                message = (
-                    f"Hello {data['first_name']} {data['last_name']},\n\n"
-                    f"Thank you for registering for the Exam Portal at Elogixa.\n\n"
-                    f"Here are your login credentials:\n"
-                    f"User ID: {user_id}\n"
-                    f"Password: {raw_password}\n\n"
-                    f"Please keep this information safe and do not share it with anyone.\n\n"
-                    f"Best regards,\nElogixa Team"
-                )
-
-                send_mail(
+                # Send email with HTML template
+                context = {
+                    'first_name': data['first_name'],
+                    'last_name': data['last_name'],
+                    'user_id': user_id,
+                    'password': raw_password,
+                     "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+                }
+                
+                html_content = render_to_string('emails/registration.html', context)
+                
+                msg = EmailMultiAlternatives(
                     subject="Exam Portal Registration Details",
-                    message=message,
+                    body="",  # Plain text body (empty since we're using HTML)
                     from_email="noreply@example.com",
-                    recipient_list=[data['email']],
-                    fail_silently=False,
+                    to=[data['email']]
                 )
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()
 
                 return Response({"message": "Internal candidate registered successfully."}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -122,14 +128,21 @@ class SendOTPView(APIView):
         # Save OTP in cache with a timeout of 5 minutes
         cache.set(f"otp_{email}", otp, timeout=300)
 
-        # Send OTP to the email
-        send_mail(
+        # Send OTP email with HTML template
+        context = {
+            'otp': otp,
+        }
+        
+        html_content = render_to_string('emails/otp.html', context)
+        
+        msg = EmailMultiAlternatives(
             subject="Your OTP for Registration",
-            message=f"Your OTP is {otp}. It is valid for 5 minutes.",
+            body="",  # Plain text body (empty since we're using HTML)
             from_email="noreply@example.com",
-            recipient_list=[email],
-            fail_silently=False,
+            to=[email]
         )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
 
         return Response({"message": "OTP sent to your email."}, status=status.HTTP_200_OK)
 
@@ -216,20 +229,25 @@ class VerifyOTPAndRegisterView(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            # Send confirmation email with User ID and Password
-            send_mail(
+            # Send confirmation email with HTML template
+            context = {
+                'first_name': data['first_name'],
+                'last_name': data['last_name'],
+                'user_id': user_id,
+                'password': password_plain,
+                 "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+            }
+            
+            html_content = render_to_string('emails/registration_confirmation.html', context)
+            
+            msg = EmailMultiAlternatives(
                 subject="Registration Successful",
-                message=f"""Welcome {data['first_name']} {data['last_name']},
-
-                Your registration was successful.
-                User ID: {user_id}
-                Password: {password_plain}
-                Please keep these credentials secure.
-                """,
+                body="",  # Plain text body (empty since we're using HTML)
                 from_email="noreply@example.com",
-                recipient_list=[email],
-                fail_silently=False,
+                to=[email]
             )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
 
             # Clear the OTP from cache
             cache.delete(f"otp_{email}")
@@ -345,14 +363,22 @@ class SendResetOTPView(APIView):
         # Save OTP in cache with a timeout of 10 minutes (600 seconds)
         cache.set(f"otp_{email}", otp, timeout=600)
 
-        # Send OTP to the email
-        send_mail(
+        # Send OTP email with HTML template
+        context = {
+            'otp': otp,
+             "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+        }
+        
+        html_content = render_to_string('emails/otp.html', context)
+        
+        msg = EmailMultiAlternatives(
             subject="Your OTP for Password Reset",
-            message=f"Your OTP is {otp}. It is valid for 10 minutes.",
+            body="",  # Plain text body (empty since we're using HTML)
             from_email="noreply@example.com",
-            recipient_list=[email],
-            fail_silently=False,
+            to=[email]
         )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
 
         return Response({"message": "OTP sent to your email."}, status=status.HTTP_200_OK)
 
@@ -390,20 +416,71 @@ class ResetPasswordView(APIView):
         # ✅ Clear the OTP
         cache.delete(f"otp_{email}")
 
-        # ✅ Send email notification
-        subject = "Your password has been changed"
-        message = f"""Hi {user.first_name},
-
-This is to inform you that your password has been successfully changed.
-
-Your User ID: {user.user_id}
-Your New Password: {new_password}
-
-If you did not request this change, please contact support immediately.
-
-Regards,
-Exam Room Support Team
-"""
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+        # ✅ Send email notification with HTML template
+        context = {
+            'first_name': user.first_name,
+            'user_id': user.user_id,
+            'new_password': new_password,
+             "logo_url": "https://res.cloudinary.com/dwybblnpz/image/upload/ChatGPT_Image_May_14_2025_02_21_41_PM_ovhtkx_c_crop_w_810_h_389_x_0_y_0_szcgmn.png",
+        }
+        
+        html_content = render_to_string('emails/reset_password.html', context)
+        
+        msg = EmailMultiAlternatives(
+            subject="Your password has been changed",
+            body="",  # Plain text body (empty since we're using HTML)
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email]
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
 
         return Response({"message": "Password reset successful!"}, status=status.HTTP_200_OK)
+
+
+# code for candidate management
+
+# LIST & CREATE
+class InternalCandidateListCreateView(generics.ListCreateAPIView):
+    serializer_class = InternalCandidateSerializer
+
+    def get_queryset(self):
+        queryset = InternalCandidate.objects.all()
+        search = self.request.query_params.get('search', '')
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone_number__icontains=search)
+            )
+        return queryset
+
+
+class ExternalCandidateListCreateView(generics.ListCreateAPIView):
+    serializer_class = ExternalCandidateSerializer
+
+    def get_queryset(self):
+        queryset = ExternalCandidate.objects.all()
+        search = self.request.query_params.get('search', '')
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone_number__icontains=search)
+            )
+        return queryset
+
+
+# RETRIEVE, UPDATE, DELETE
+class InternalCandidateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = InternalCandidate.objects.all()
+    serializer_class = InternalCandidateSerializer
+    lookup_field = 'id'
+
+
+class ExternalCandidateDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ExternalCandidate.objects.all()
+    serializer_class = ExternalCandidateSerializer
+    lookup_field = 'id'

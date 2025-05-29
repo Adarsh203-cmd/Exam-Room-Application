@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
 from django.core.cache import cache
+from django.utils import timezone
+import pytz
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from .models import exam_creation, ExamAssignment
@@ -19,6 +21,8 @@ from .serializers import (
 from exam_content.models import MCQQuestion, FillInTheBlankQuestion
 from exam_content.serializers import MCQQuestionSerializer, FillBlankQuestionSerializer
 from candidate_enrollment.models import InternalCandidate, ExternalCandidate
+from django.utils import timezone
+from rest_framework.decorators import action
 
 
 # ----- Dynamic Subject & Question Endpoints -----
@@ -90,6 +94,24 @@ class ExamCreationViewSet(viewsets.ModelViewSet):
             exam_url=f"http://localhost:5173/login/{token}"
         )
         return Response(ExamCreationSerializer(exam).data, status=status.HTTP_201_CREATED)
+ 
+    @action(detail=False, methods=['get'])
+    def get_by_token(self, request):
+        token = request.query_params.get('token')
+        if not token:
+            return Response({"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+        try:
+            exam = exam_creation.objects.get(exam_token=token)
+            return Response({
+            'exam_title': exam.exam_title,
+            'exam_start_time': exam.exam_start_time,
+            'exam_end_time': exam.exam_end_time,
+            'location': exam.location,
+            'instruction': exam.instruction
+           })
+        except exam_creation.DoesNotExist:
+            return Response({"error": "Invalid exam token"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ExamDetailView(APIView):

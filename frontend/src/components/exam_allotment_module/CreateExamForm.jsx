@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import "../../styles/exam_allotment_module_css/CreateExamForm.css";
 
 const CreateExamForm = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const CreateExamForm = () => {
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [counts, setCounts] = useState({});
   const [fetchedQuestions, setFetchedQuestions] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     axios.get('/api/exam_allotment/subjects/')
@@ -53,29 +55,53 @@ const CreateExamForm = () => {
     );
   };
 
-  const fetchQuestions = (subject, latestCounts) => {
-    const { mcq = 0, fib = 0 } = latestCounts[subject] || {};
-    if (mcq <= 0 && fib <= 0) return;
+  // Replace your existing fetchQuestions function with this:
 
-    axios.get('/api/exam_allotment/random-questions/', {
+const fetchQuestions = async (subject, latestCounts) => {
+  const { mcq = 0, fib = 0 } = latestCounts[subject] || {};
+  if (mcq <= 0 && fib <= 0) return;
+
+  setIsLoading(true);
+  
+  try {
+    const res = await axios.get('/api/exam_allotment/random-questions/', {
       params: { subject, mcq_count: mcq, fib_count: fib }
-    })
-      .then(res => {
-        setFetchedQuestions(fq => ({ ...fq, [subject]: res.data }));
-        setFormData(fd => ({
-          ...fd,
-          mcq_question_ids: Array.from(new Set([
-            ...fd.mcq_question_ids,
-            ...res.data.mcq.map(q => q.id)
-          ])),
-          fib_question_ids: Array.from(new Set([
-            ...fd.fib_question_ids,
-            ...res.data.fib.map(q => q.id)
-          ]))
-        }));
-      })
-      .catch(err => console.error(`Error fetching questions for ${subject}:`, err));
-  };
+    });
+    
+    // Update the fetched questions for this subject
+    setFetchedQuestions(fq => ({ ...fq, [subject]: res.data }));
+    
+    // ✅ CRITICAL FIX: Regenerate ALL question IDs from ALL subjects
+    setFetchedQuestions(currentFetchedQuestions => {
+      const updatedFetchedQuestions = { ...currentFetchedQuestions, [subject]: res.data };
+      
+      // Collect ALL question IDs from ALL selected subjects
+      const allMcqIds = [];
+      const allFibIds = [];
+      
+      Object.keys(updatedFetchedQuestions).forEach(subj => {
+        if (selectedSubjects.includes(subj) && updatedFetchedQuestions[subj]) {
+          allMcqIds.push(...updatedFetchedQuestions[subj].mcq.map(q => q.id));
+          allFibIds.push(...updatedFetchedQuestions[subj].fib.map(q => q.id));
+        }
+      });
+      
+      // Update formData with the complete set of question IDs
+      setFormData(fd => ({
+        ...fd,
+        mcq_question_ids: allMcqIds,
+        fib_question_ids: allFibIds
+      }));
+      
+      return updatedFetchedQuestions;
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching questions for ${subject}:`, err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleCountChange = (subject, type, value) => {
     const num = parseInt(value, 10) || 0;
@@ -89,43 +115,66 @@ const CreateExamForm = () => {
     });
   };
 
- const validateForm = () => {
-  const newErrors = {};
+  const validateForm = () => {
+    const newErrors = {};
 
-  if (!formData.exam_title.trim()) newErrors.exam_title = 'Exam title is required';
-  if (!formData.instruction.trim()) newErrors.instruction = 'Instruction is required';
-  if (!formData.exam_start_time) newErrors.exam_start_time = 'Start time is required';
-  if (!formData.exam_end_time) newErrors.exam_end_time = 'End time is required';
-  if (formData.exam_start_time && formData.exam_end_time) {
-    const start = new Date(formData.exam_start_time);
-    const end = new Date(formData.exam_end_time);
-    if (end <= start) {
-      newErrors.exam_end_time = 'End time must be after start time';
+    if (!formData.exam_title.trim()) newErrors.exam_title = 'Exam title is required';
+    if (!formData.instruction.trim()) newErrors.instruction = 'Instruction is required';
+    if (!formData.exam_start_time) newErrors.exam_start_time = 'Start time is required';
+    if (!formData.exam_end_time) newErrors.exam_end_time = 'End time is required';
+    if (formData.exam_start_time && formData.exam_end_time) {
+      const start = new Date(formData.exam_start_time);
+      const end = new Date(formData.exam_end_time);
+      if (end <= start) {
+        newErrors.exam_end_time = 'End time must be after start time';
+      }
     }
-  }
-  if (!formData.created_by) newErrors.created_by = 'Select a creator';
-  if (!formData.role_or_department.trim()) newErrors.role_or_department = 'Role/Department is required';
-  if (!formData.location.trim()) newErrors.location = 'Location is required';
+    if (!formData.created_by) newErrors.created_by = 'Select a creator';
+    if (!formData.role_or_department.trim()) newErrors.role_or_department = 'Role/Department is required';
+    if (!formData.location.trim()) newErrors.location = 'Location is required';
 
-  setErrors(newErrors);
-  return newErrors;
-};
+    setErrors(newErrors);
+    return newErrors;
+  };
 
-const handleSubmit = async e => {
-  e.preventDefault();
-  const validationErrors = validateForm();
-  const invalidField = Object.keys(validationErrors)[0];
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const validationErrors = validateForm();
+    const invalidField = Object.keys(validationErrors)[0];
 
-  if (invalidField) {
-    refs[invalidField].current?.focus();
-    return;
-  }
+    if (invalidField) {
+      refs[invalidField].current?.focus();
+      return;
+    }
 
-  try {
+    try {
+    // ✅ FIX: Convert datetime-local values to IST timezone before sending to Django
+    const convertToIST = (datetimeLocal) => {
+      if (!datetimeLocal) return datetimeLocal;
+      
+      // datetime-local gives us: "2025-05-28T10:45"
+      // We need to tell Django this is IST time, not UTC
+      // Convert to ISO format with IST timezone offset
+      const localDate = new Date(datetimeLocal);
+      
+      // Since the user entered this time thinking it's IST,
+      // we need to create an ISO string that represents this time in IST
+      const istOffset = '+05:30';
+      const isoString = datetimeLocal + ':00' + istOffset;
+      
+      return isoString;
+    };
+
     const payload = {
       ...formData,
       created_by: parseInt(formData.created_by, 10),
+      // Convert both start and end times to IST timezone format
+      exam_start_time: convertToIST(formData.exam_start_time),
+      exam_end_time: convertToIST(formData.exam_end_time),
     };
+    
+    console.log('Payload being sent:', payload); // Debug log
+    
     const examRes = await axios.post('/api/exam_allotment/exams/', payload);
     const exam = examRes.data;
     navigate(`/select-candidates/${exam.exam_token}`);
@@ -135,137 +184,211 @@ const handleSubmit = async e => {
   }
 };
 
-  const inputStyle = {
-    width: '100%',
-    marginBottom: '4px',
-    padding: '8px',
-    border: '1px solid #ccc',
-    borderRadius: '4px'
-  };
-
-  const errorStyle = {
-    color: 'red',
-    fontSize: '0.85em',
-    marginBottom: '10px'
-  };
-
   return (
-    <div style={{ padding: 20, maxWidth: 700, margin: 'auto' }}>
-      <h2>Create Exam</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          name="exam_title"
-          placeholder="Exam Title"
-          ref={refs.exam_title}
-          value={formData.exam_title}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        {errors.exam_title && <div style={errorStyle}>{errors.exam_title}</div>}
-
-        <textarea
-          name="instruction"
-          placeholder="Instruction"
-          ref={refs.instruction}
-          value={formData.instruction}
-          onChange={handleInputChange}
-          style={{ ...inputStyle, height: 80 }}
-        />
-        {errors.instruction && <div style={errorStyle}>{errors.instruction}</div>}
-
-        <label>Start Time:</label>
-        <input
-          type="datetime-local"
-          name="exam_start_time"
-          ref={refs.exam_start_time}
-          value={formData.exam_start_time}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        {errors.exam_start_time && <div style={errorStyle}>{errors.exam_start_time}</div>}
-
-        <label>End Time:</label>
-        <input
-          type="datetime-local"
-          name="exam_end_time"
-          ref={refs.exam_end_time}
-          value={formData.exam_end_time}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        {errors.exam_end_time && <div style={errorStyle}>{errors.exam_end_time}</div>}
-
-        <select
-          name="created_by"
-          ref={refs.created_by}
-          value={formData.created_by}
-          onChange={handleInputChange}
-          style={inputStyle}
-        >
-          <option value="">-- Creator --</option>
-          <option value="1">HR</option>
-          <option value="2">Employee</option>
-        </select>
-        {errors.created_by && <div style={errorStyle}>{errors.created_by}</div>}
-
-        <input
-          name="role_or_department"
-          placeholder="Role / Department"
-          ref={refs.role_or_department}
-          value={formData.role_or_department}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        {errors.role_or_department && <div style={errorStyle}>{errors.role_or_department}</div>}
-
-        <input
-          name="location"
-          placeholder="Location"
-          ref={refs.location}
-          value={formData.location}
-          onChange={handleInputChange}
-          style={inputStyle}
-        />
-        {errors.location && <div style={errorStyle}>{errors.location}</div>}
-
-        <div style={{ marginBottom: 20 }}><strong>Select Subjects:</strong>
-          {allSubjects.map(subj => (
-            <div key={subj} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <label style={{ flex: 1 }}>
-                <input type="checkbox"
-                  checked={selectedSubjects.includes(subj)}
-                  onChange={() => toggleSubject(subj)} /> {subj}
-              </label>
-              {selectedSubjects.includes(subj) && (
-                <>
-                  <input type="number" min="0" placeholder="MCQ#"
-                    value={counts[subj]?.mcq || ''}
-                    onChange={e => handleCountChange(subj, 'mcq', e.target.value)}
-                    style={{ width: 60, marginRight: 4 }} />
-                  <input type="number" min="0" placeholder="FIB#"
-                    value={counts[subj]?.fib || ''}
-                    onChange={e => handleCountChange(subj, 'fib', e.target.value)}
-                    style={{ width: 60 }} />
-                </>
-              )}
+    <div className="exam-form-container">
+      <div className="form-wrapper">
+        {/* Left Side - Form */}
+        <div className="form-section">
+          <h1 className="form-title">Create Exam</h1>
+          <p className="form-subtitle">Fill in the details to create a new examination</p>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">Exam Title *</label>
+              <input
+                name="exam_title"
+                placeholder="Enter exam title"
+                ref={refs.exam_title}
+                value={formData.exam_title}
+                onChange={handleInputChange}
+                className="form-input"
+              />
+              {errors.exam_title && <div className="error-message">⚠ {errors.exam_title}</div>}
             </div>
-          ))}
+
+            <div className="form-group">
+              <label className="form-label">Instructions *</label>
+              <textarea
+                name="instruction"
+                placeholder="Enter exam instructions for students"
+                ref={refs.instruction}
+                value={formData.instruction}
+                onChange={handleInputChange}
+                className="form-input form-textarea"
+              />
+              {errors.instruction && <div className="error-message">⚠ {errors.instruction}</div>}
+            </div>
+
+            <div className="datetime-group">
+              <div className="form-group">
+                <label className="form-label">Start Time *</label>
+                <input
+                  type="datetime-local"
+                  name="exam_start_time"
+                  ref={refs.exam_start_time}
+                  value={formData.exam_start_time}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+                {errors.exam_start_time && <div className="error-message">⚠ {errors.exam_start_time}</div>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">End Time *</label>
+                <input
+                  type="datetime-local"
+                  name="exam_end_time"
+                  ref={refs.exam_end_time}
+                  value={formData.exam_end_time}
+                  onChange={handleInputChange}
+                  className="form-input"
+                />
+                {errors.exam_end_time && <div className="error-message">⚠ {errors.exam_end_time}</div>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Created By *</label>
+              <select
+                name="created_by"
+                ref={refs.created_by}
+                value={formData.created_by}
+                onChange={handleInputChange}
+                className="form-input form-select"
+              >
+                <option value="">-- Select Creator --</option>
+                <option value="1">HR Department</option>
+                <option value="2">Employee</option>
+              </select>
+              {errors.created_by && <div className="error-message">⚠ {errors.created_by}</div>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Role / Department *</label>
+              <input
+                name="role_or_department"
+                placeholder="Enter role or department"
+                ref={refs.role_or_department}
+                value={formData.role_or_department}
+                onChange={handleInputChange}
+                className="form-input"
+              />
+              {errors.role_or_department && <div className="error-message">⚠ {errors.role_or_department}</div>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Location *</label>
+              <input
+                name="location"
+                placeholder="Enter exam location"
+                ref={refs.location}
+                value={formData.location}
+                onChange={handleInputChange}
+                className="form-input"
+              />
+              {errors.location && <div className="error-message">⚠ {errors.location}</div>}
+            </div>
+
+
+<div className="subjects-section">
+  <div className="subjects-title">Select Subjects</div>
+  {allSubjects.map(subj => (
+    <div key={subj} className="subject-item">
+      <div className="subject-row">
+        <label className="subject-checkbox-label">
+          <input 
+            type="checkbox"
+            className="subject-checkbox"
+            checked={selectedSubjects.includes(subj)}
+            onChange={() => toggleSubject(subj)} 
+          />
+          <span className="subject-name">{subj}</span>
+        </label>
+        
+        {selectedSubjects.includes(subj) && (
+          <div className="question-counts-inline">
+            <div className="count-group">
+              <input 
+                type="number" 
+                min="0" 
+                placeholder="0"
+                value={counts[subj]?.mcq || ''}
+                onChange={e => handleCountChange(subj, 'mcq', e.target.value)}
+                className="count-input"
+              />
+              <label className="count-label">MCQ</label>
+            </div>
+            <div className="count-group">
+              <input 
+                type="number" 
+                min="0" 
+                placeholder="0"
+                value={counts[subj]?.fib || ''}
+                onChange={e => handleCountChange(subj, 'fib', e.target.value)}
+                className="count-input"
+              />
+              <label className="count-label">FIB</label>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+
+
+            <button 
+              type="submit" 
+              className={`submit-button ${isLoading ? 'loading' : ''}`}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating Exam...' : 'Create Exam'}
+            </button>
+          </form>
         </div>
 
-        {selectedSubjects.map(subj => (
-          fetchedQuestions[subj] && (
-            <div key={subj} style={{ background: '#f8f8f8', padding: 15, marginBottom: 20 }}>
-              <h4>{subj} Preview</h4>
-              <h5>MCQs:</h5>
-              <ul>{fetchedQuestions[subj].mcq.map(q => <li key={q.id}>{q.question_text}</li>)}</ul>
-              <h5>FIBs:</h5>
-              <ul>{fetchedQuestions[subj].fib.map(q => <li key={q.id}>{q.question_text}</li>)}</ul>
+        {/* Right Side - Preview */}
+        <div className="preview-section">
+          <h2 className="preview-title">Question Preview</h2>
+          
+          {selectedSubjects.length === 0 ? (
+            <div className="empty-preview">
+              <p>Select subjects to preview questions</p>
             </div>
-          )
-        ))}
-
-        <button type="submit" style={{ width: '100%', padding: 10 }}>Create Exam</button>
-      </form>
+          ) : (
+            selectedSubjects.map(subj => 
+              fetchedQuestions[subj] && (
+                <div key={subj} className="preview-card">
+                  <h3 className="subject-heading">{subj}</h3>
+                  
+                  {fetchedQuestions[subj].mcq.length > 0 && (
+                    <>
+                      <h4 className="question-type-header">Multiple Choice Questions</h4>
+                      <ul className="question-list">
+                        {fetchedQuestions[subj].mcq.map(q => 
+                          <li key={q.id} className="question-item">{q.question_text}</li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                  
+                  {fetchedQuestions[subj].fib.length > 0 && (
+                    <>
+                      <h4 className="question-type-header">Fill in the Blanks</h4>
+                      <ul className="question-list">
+                        {fetchedQuestions[subj].fib.map(q => 
+                          <li key={q.id} className="question-item">{q.question_text}</li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 };

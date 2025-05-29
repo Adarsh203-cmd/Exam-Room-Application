@@ -217,16 +217,7 @@ const UserForm = ({
                     required
                   /> Female
                 </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="Other"
-                    checked={data.gender === "Other"}
-                    onChange={handleChange}
-                    required
-                  /> Other
-                </label>
+
               </div>
               <div className="error-message">{formErrors.gender || "\u00A0"}</div>
             </div>
@@ -323,7 +314,7 @@ const UserForm = ({
                 <option value="be">BE</option>
                 <option value="mtech">M.Tech</option>
               </select>
-              <div className="error-message">{formErrors.highest_qualification || "\u00A0"}</div>
+              {/* <div className="error-message">{formErrors.highest_qualification || "\u00A0"}</div> */}
             </div>
           )}
           <button type="submit" disabled={isLoading}>

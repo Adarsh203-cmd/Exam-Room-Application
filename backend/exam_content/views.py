@@ -38,11 +38,18 @@ class MCQDetailView(APIView):
         return get_object_or_404(MCQQuestion, pk=pk)
 
     def put(self, request, pk):
-        instance = self.get_object(pk)
-        serializer = MCQQuestionSerializer(instance, data=request.data)
+        mcq = get_object_or_404(MCQQuestion, pk=pk)
+        data = request.data
+
+        # Automatically determine answer_type based on correct_answers count
+        correct_answers = data.get('correct_answers', [])
+        if isinstance(correct_answers, list):
+            data['answer_type'] = 'Multiple' if len(correct_answers) > 1 else 'Single'
+
+        serializer = MCQQuestionSerializer(mcq, data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "MCQ question updated successfully."}, status=status.HTTP_200_OK)
+            return Response({"message": "MCQ question updated successfully."})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):

@@ -94,7 +94,7 @@ body, html, #root {
   cursor: pointer;
 }
 
-/* Question Area */
+/* Question Area - FIXED: Removed padding-left */
 .main-section {
   flex: 1;
   display: flex;
@@ -104,7 +104,7 @@ body, html, #root {
   background-color: #f0f2f5;
   padding: 0 20px;
   box-sizing: border-box;
-  padding-left: 200px;
+  /* ✅ REMOVED: padding-left: 200px; */
 }
 
 .question-panel {
@@ -236,6 +236,43 @@ body, html, #root {
   cursor: not-allowed;
 }
 
+/* Error and Loading States */
+.exam-container.error {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 18px;
+  text-align: center;
+}
+
+.retry-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.security-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background-color: #d32f2f;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  z-index: 1000;
+  font-weight: bold;
+}
+
 /* ----------------- RESPONSIVE STYLES ----------------- */
 
 /* Large tablets and small laptops */
@@ -245,8 +282,9 @@ body, html, #root {
     padding: 10px;
     font-size: 15px;
   }
+  /* ✅ FIXED: Removed padding-left adjustment */
   .main-section {
-    padding-left: 120px;
+    padding: 0 10px;
   }
   .rightbar {
     width: 120px;
@@ -282,9 +320,8 @@ body, html, #root {
     font-size: 14px;
   }
   .main-section {
-    padding-left: 0;
-    min-height: unset;
     padding: 10px;
+    min-height: unset;
   }
   .rightbar {
     width: 100vw;

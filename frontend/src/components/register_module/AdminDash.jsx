@@ -3,7 +3,9 @@ import {
   FaClipboardList,
   FaCog,
   FaUsers,
-  FaUserTie
+  FaUserTie,
+  FaUpload,
+  FaTasks
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../../styles/register_module_css/AdminDashboard.css";
@@ -23,15 +25,9 @@ const modules = [
   },
   {
     name: "Manage Profile",
-    icon: <FaClipboardList />,
-    path: "/candidate-profile",
+    icon: <FaClipboardList />,// add this to import
+    path: "/candidate-management",
     color: "#FF5959"
-  },
-  {
-    name: "Exam Overview",
-    icon: <FaChartBar />,
-    path: "/exam-overview",
-    color: "#6A89CC"
   },
   {
     name: "Create Exam",
@@ -47,9 +43,16 @@ const modules = [
   }
   ,
   {
-    name: "Manage questions",
-    icon: <FaChartBar />,
+    name: "upload questions",
+    icon: <FaUpload />,
     path: "/mcq-create",
+    color: "#9D50BB"
+  }
+  ,
+  {
+    name: "Manage questions",
+    icon: <FaTasks />,
+    path: "/manage-question",
     color: "#9D50BB"
   }
   

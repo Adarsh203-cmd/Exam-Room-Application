@@ -10,7 +10,7 @@ urlpatterns = [
     path("fill/create/", FillBlankQuestionCreateView.as_view(), name="create-fill"),
     path("mcq/list/", MCQListView.as_view(), name="list-mcq"),
     path("fill/list/", FillBlankListView.as_view(), name="list-fill"),
-    path("mcq/<uuid:pk>/", MCQDetailView.as_view(), name="mcq-detail"),
-    path("fill/<uuid:pk>/", FillBlankDetailView.as_view(), name="fill-detail"),
+    path("mcq/<int:pk>/", MCQDetailView.as_view(), name="mcq-detail"),
+    path("fill/<int:pk>/", FillBlankDetailView.as_view(), name="fill-detail"),
 ]
 
