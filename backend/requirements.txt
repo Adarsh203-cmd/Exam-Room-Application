@@ -177,6 +177,7 @@ urllib3==2.2.3
 validate-email-address==1
 virtualenv==20.29.1
 wcwidth==0.2.13
+whitenoise
 webcolors==24.11.1
 webdriver-manager==4.0.2
 webencodings==0.5.1
