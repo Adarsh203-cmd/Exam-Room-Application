@@ -68,7 +68,7 @@ MIDDLEWARE = [
 # CORS settings for production and development
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Local development
-    "https://exam-room-application-frontend.netlify.app/",  # Replace with your actual Vercel URL
+    "https://exam-room-application-frontend.netlify.app",  # Replace with your actual Vercel URL
 ]
 
 CORS_ALLOW_METHODS = [
