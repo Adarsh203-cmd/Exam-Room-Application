@@ -55,9 +55,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",  # For serving static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -83,6 +83,9 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'content-type',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 # REST Framework configuration
 REST_FRAMEWORK = {
