@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import CandidateTable from "./ExamCandidateTable";
+import CandidateTable from "./ExamCandidateTable.jsx";
 import { apiClient } from '../../config/api';
 
 const ExamDetailsModal = ({
