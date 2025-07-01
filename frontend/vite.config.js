@@ -8,9 +8,8 @@ export default defineConfig({
     proxy: {
       // forward any request beginning with /api to Django on port 8000
       "/api": {
-        target: "",
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        secure: false,
       },
     },
   },

@@ -39,6 +39,7 @@ import SecondRegisterPage from './components/register_module/SeconRegisterPage';
 
 // Admin dashboard
 import AdminDash from './components/register_module/AdminDash';
+import HiringTest_Dashboard from './components/Dashboard_module/HiringTest_Dashboard';
 
 // ✅ Import your Header component
 import Header from './components/header_module/header';
@@ -136,6 +137,7 @@ const AppContent = () => {
 
           {/* Report and Dashboard */}
           <Route path="/report-dashboard" element={<Report_Dashboard />} />
+          <Route path="/HiringTest_Dashboard" element={<HiringTest_Dashboard />} />
 
           {/* Fallback route for undefined paths */}
           <Route

@@ -20,6 +20,8 @@ const FirstRegisterPage = () => {
     navigate('/second-page');
   };
 
+  
+
   return (
     <UserForm
       formTitle="Register Here"

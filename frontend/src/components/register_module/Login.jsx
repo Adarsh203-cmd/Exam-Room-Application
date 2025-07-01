@@ -1,9 +1,9 @@
-//Enhanced Login.jsx with better debugging
+//Enhanced Login.jsx with Register Button
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import { ThreeDots } from "react-loader-spinner";
 import "../../styles/register_module_css/App.css";
-import { apiClient } from '../../config/api';
 
 const LoginForm = () => {
   const [userID, setUserID] = useState("");
@@ -42,7 +42,7 @@ const LoginForm = () => {
         console.log("Attempting exam login with token:", examToken);
 
         // Exam login
-        const response = await apiClient.post("/api/exam-view/exam-login/", {
+        const response = await axios.post("/api/exam-view/exam-login/", {
           user_id: userID,
           password: password,
           exam_token: examToken,
@@ -75,7 +75,7 @@ const LoginForm = () => {
           api_endpoint: "/api/candidate/login/",
         });
 
-        const response = await apiClient.post("/api/candidate/login/", {
+        const response = await axios.post("/api/candidate/login/", {
           login_type: loginType,
           user_id: userID,
           password: password,
@@ -137,6 +137,11 @@ const LoginForm = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle register button click
+  const handleRegisterClick = () => {
+    navigate("/first-page");
   };
 
   return (
@@ -248,10 +253,53 @@ const LoginForm = () => {
                 )}
               </button>
             </form>
+
+            {/* New Register Section */}
+            <div className="register-section" style={{
+              marginTop: "20px",
+              textAlign: "center",
+              borderTop: "1px solid #e0e0e0",
+              paddingTop: "20px"
+            }}>
+              <p style={{
+                color: "#666",
+                fontSize: "14px",
+                marginBottom: "15px"
+              }}>
+                Don't have an account?
+              </p>
+              <button
+                type="button"
+                onClick={handleRegisterClick}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "transparent",
+                  border: "2px solid #007bff",
+                  color: "#007bff",
+                  borderRadius: "4px",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#007bff";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.color = "#007bff";
+                }}
+              >
+                Register as New Candidate
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default LoginForm;

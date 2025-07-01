@@ -1,12 +1,12 @@
 // frontend/src/components/dashboard/ScheduledExams.jsx
 import React, { useEffect, useState } from "react";
-import { apiClient } from '../../config/api';
+import axios from "axios";
 
 const ScheduledExams = () => {
   const [scheduledExams, setScheduledExams] = useState([]);
 
   useEffect(() => {
-    apiClient
+    axios
       .get("/api/exam_allotment/exams/scheduled/")
       .then((res) => setScheduledExams(res.data))
       .catch((err) => console.error("Error fetching scheduled exams:", err));

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ThreeDots } from "react-loader-spinner";
 import "../../styles/register_module_css/App.css";
-import { apiClient } from '../../config/api';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState("");
@@ -31,7 +31,7 @@ const OTPVerification = () => {
 
     try {
       setLoading(true);
-      const res = await apiClient.post(
+      const res = await axios.post(
         "/api/candidate/verify-otp-register/",
         payload
       );
@@ -41,9 +41,23 @@ const OTPVerification = () => {
         navigate("/login");
       }
     } catch (err) {
-      console.error("OTP verification failed:", err);
+  console.error("OTP verification failed:", err);
+
+  if (err.response) {
+    const status = err.response.status;
+    const data = err.response.data;
+
+    if (status === 400 && data?.email?.[0]?.includes("already")) {
+      alert("This email is already registered.");
+    } else if (status === 409) {
+      alert("This email or user is already registered.");
+    } else {
       alert("Invalid OTP or error occurred.");
-    } finally {
+    }
+  } else {
+    alert("Network error or server not responding.");
+  }
+}finally {
       setLoading(false);
     }
   };

@@ -17,112 +17,116 @@ import {
 } from "recharts";
 import "../../styles/Dashboard_module_css/Dashboard.css";
 
-// Sample Data for Exam Reports (keep as is)
-const examReports = [
-  // ... your sample data ...
-];
-
 function isPass(candidate, cutOffs) {
   // If cutOffs is a number (old single cutoff), convert to object
   if (typeof cutOffs === 'number') {
     return (
       candidate.score >= cutOffs &&
       candidate.aptitude >= cutOffs &&
-      candidate.reasoning >= cutOffs &&
-      candidate.networks >= cutOffs
+      candidate.technical >= cutOffs
     );
   }
   
   // New section-wise cutoff logic
   return (
     candidate.aptitude >= (cutOffs.aptitude || 0) &&
-    candidate.reasoning >= (cutOffs.reasoning || 0) &&
-    candidate.networks >= (cutOffs.networks || 0)
+    candidate.technical >= (cutOffs.technical || 0) &&
+    (candidate.reasoning || 0) >= (cutOffs.reasoning || 0)
   );
 }
 
 const COLORS = ["#38A169", "#E53E3E"];
 
-const Report_Dashboard = () => {
-  // Dashboard state
-  const [totalExams, setTotalExams] = useState(0);
-  const [upcomingExams, setUpcomingExams] = useState([]);
-  const [successRate, setSuccessRate] = useState("0%");
-  const [showUpcomingModal, setShowUpcomingModal] = useState(false);
-
-  // Reporting state
+const HiringTest_Dashboard = () => {
+  // State management
+  const [hiringTestData, setHiringTestData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [popupData, setPopupData] = useState(null);
-  const [selectedExam, setSelectedExam] = useState(null);
+  const [showExamDetails, setShowExamDetails] = useState(false);
   const [customCutOff, setCustomCutOff] = useState(null);
   const [sectionCutOffs, setSectionCutOffs] = useState({});
-  const [sortOrder, setSortOrder] = useState("asc");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  // Assigned people modal state
-  const [showAssignedModal, setShowAssignedModal] = useState(false);
-  const [assignedUsers, setAssignedUsers] = useState([]);
-  const [loadingAssigned, setLoadingAssigned] = useState(false);
-  const [assignedError, setAssignedError] = useState(null);
-
-  // All exams for "View Assignments" integration
-  const [allExams, setAllExams] = useState([]);
-  const [loadingAllExams, setLoadingAllExams] = useState(false);
-  const [allExamsError, setAllExamsError] = useState(null);
-
-  // Fetch dashboard stats from API
+  // Fetch hiring test data from API
   useEffect(() => {
-    axios
-      .get("/api/dashboard/total-upcomingexams/")
-      .then((response) => {
-        const data = response.data;
-        setTotalExams(data.total_exams_count);
-        setUpcomingExams(data.upcoming_exam_details || []);
-        setSuccessRate(data.success_rate || "0%");
-      })
-      .catch((error) => {
-        console.error("API fetch error:", error);
-      });
-  }, []);
+    const fetchHiringTestData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://127.0.0.1:8000/api/evaluation/hiring-test-data/");
+        
+        if (response.data.success) {
+          setHiringTestData(response.data.data);
+        } else {
+          setError("Failed to fetch hiring test data");
+        }
+      } catch (err) {
+        console.error("API fetch error:", err);
+        setError("Error fetching hiring test data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    setLoadingAllExams(true);
-    fetch("/api/dashboard/exams/")
-      .then((res) => res.json())
-      .then((data) => {
-        // If your API returns {exams: [...]}, use data.exams; else use data directly
-        setAllExams(data.exams || data);
-        setLoadingAllExams(false);
-      })
-      .catch((err) => {
-        setAllExamsError("Failed to load exams.");
-        setLoadingAllExams(false);
-      });
+    fetchHiringTestData();
   }, []);
 
   const closeModal = () => {
     setPopupData(null);
-    setSelectedExam(null);
+    setShowExamDetails(false);
     setCustomCutOff(null);
     setSectionCutOffs({});
     setSelectedCandidate(null);
-    setShowUpcomingModal(false);
   };
 
-  const sortedReports = [...examReports].sort((a, b) =>
-    sortOrder === "asc"
-      ? new Date(a.date) - new Date(b.date)
-      : new Date(b.date) - new Date(a.date)
-  );
+  // Create consolidated exam data
+  const getExamData = () => {
+    if (!hiringTestData || hiringTestData.length === 0) return null;
+    
+    // Assuming all students took the same exam, use the first entry for exam details
+    const firstEntry = hiringTestData[0];
+    
+    // Convert all individual test records to candidates
+    const candidates = hiringTestData.map(test => ({
+      name: test.name,
+      score: test.total_score,
+      aptitude: test.aptitude,
+      technical: test.technical,
+      reasoning: test.reasoning || 0
+    }));
+
+    // Calculate summary statistics
+    const totalStudents = candidates.length;
+    const averageScore = candidates.reduce((sum, c) => sum + c.score, 0) / totalStudents;
+    const averageAptitude = candidates.reduce((sum, c) => sum + c.aptitude, 0) / totalStudents;
+    const averageTechnical = candidates.reduce((sum, c) => sum + c.technical, 0) / totalStudents;
+
+    return {
+      name: hiringTestData.name || "Hiring Test",
+      test_date: firstEntry.test_date,
+      candidates: candidates,
+      totalStudents: totalStudents,
+      averageScore: Math.round(averageScore * 100) / 100,
+      averageAptitude: Math.round(averageAptitude * 100) / 100,
+      averageTechnical: Math.round(averageTechnical * 100) / 100
+    };
+  };
+
+  const examData = getExamData();
 
   const getPieData = (exam) => {
     const cutOffs = Object.keys(sectionCutOffs).length > 0 ? sectionCutOffs : 
-                   (customCutOff !== null ? customCutOff : exam.cutOff);
+                   (customCutOff !== null ? customCutOff : 50);
     let pass = 0;
     let fail = 0;
-    exam.candidates.forEach((c) => {
-      if (isPass(c, cutOffs)) pass++;
-      else fail++;
-    });
+    
+    if (exam && exam.candidates && exam.candidates.length > 0) {
+      exam.candidates.forEach((c) => {
+        if (isPass(c, cutOffs)) pass++;
+        else fail++;
+      });
+    }
+    
     return [
       { name: "Pass", value: pass },
       { name: "Fail", value: fail },
@@ -135,8 +139,8 @@ const Report_Dashboard = () => {
         {
           name: selectedCandidate.name,
           Aptitude: selectedCandidate.aptitude,
-          Reasoning: selectedCandidate.reasoning,
-          Networks: selectedCandidate.networks,
+          Technical: selectedCandidate.technical,
+          Reasoning: selectedCandidate.reasoning || 0,
         },
       ];
     }
@@ -144,27 +148,28 @@ const Report_Dashboard = () => {
   };
 
   const exportToPDF = (exam) => {
-    if (!exam || !exam.name) {
+    if (!exam || !exam.candidates) {
       alert("Exam data is missing");
       return;
     }
 
     const cutOffsUsed = Object.keys(sectionCutOffs).length > 0 ? sectionCutOffs : 
-                       (customCutOff !== null ? customCutOff : exam.cutOff);
+                       (customCutOff !== null ? customCutOff : 50);
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text(`${exam.name} - Results`, 20, 20);
+    doc.text(`${exam.name} - Hiring Test Results`, 20, 20);
     doc.setFontSize(12);
-    doc.text(`Date: ${exam.date}`, 20, 30);
+    doc.text(`Date: ${exam.test_date}`, 20, 30);
+    doc.text(`Total Students: ${exam.totalStudents}`, 20, 40);
     
     // Display cutoff information
     if (typeof cutOffsUsed === 'object') {
-      doc.text(`Cutoff Scores - Aptitude: ${cutOffsUsed.aptitude || 0}, Reasoning: ${cutOffsUsed.reasoning || 0}, Networks: ${cutOffsUsed.networks || 0}`, 20, 40);
+      doc.text(`Cutoff Scores - Aptitude: ${cutOffsUsed.aptitude || 0}, Technical: ${cutOffsUsed.technical || 0}, Reasoning: ${cutOffsUsed.reasoning || 0}`, 20, 50);
     } else {
-      doc.text(`Cut-off Score (applied to all subjects): ${cutOffsUsed}`, 20, 40);
+      doc.text(`Cut-off Score (applied to all subjects): ${cutOffsUsed}`, 20, 50);
     }
 
-    // Sort candidates for PDF as well
+    // Sort candidates for PDF
     const sortedCandidates = [...exam.candidates].sort((a, b) => {
       const aStatus = isPass(a, cutOffsUsed) ? 1 : 0;
       const bStatus = isPass(b, cutOffsUsed) ? 1 : 0;
@@ -176,24 +181,26 @@ const Report_Dashboard = () => {
       c.name,
       c.score,
       c.aptitude,
-      c.reasoning,
-      c.networks,
+      c.technical,
+      c.reasoning || 0,
       isPass(c, cutOffsUsed) ? "Pass" : "Fail",
     ]);
 
     autoTable(doc, {
       head: [
-        ["Name", "Total Score", "Aptitude", "Reasoning", "Networks", "Status"],
+        ["Name", "Total Score", "Aptitude", "Technical", "Reasoning", "Status"],
       ],
       body: tableData,
-      startY: 50,
+      startY: 60,
     });
 
-    doc.save(`${exam.name.replace(/\s+/g, "_")}_Report.pdf`);
+    doc.save(`${exam.name.replace(/\s+/g, "_")}_Hiring_Test_Report.pdf`);
   };
 
-  // ---- Candidate Table Component ----
+  // Candidate Table Component
   const CandidateTable = ({ exam, cutOffs }) => {
+    if (!exam || !exam.candidates) return null;
+
     // Sort candidates: Pass first, then Fail, then by score descending
     const sortedCandidates = [...exam.candidates].sort((a, b) => {
       const aStatus = isPass(a, cutOffs) ? 1 : 0;
@@ -201,6 +208,7 @@ const Report_Dashboard = () => {
       if (aStatus !== bStatus) return bStatus - aStatus;
       return b.score - a.score;
     });
+
     return (
       <table
         style={{
@@ -221,10 +229,10 @@ const Report_Dashboard = () => {
               Aptitude
             </th>
             <th style={{ border: "1px solid #333", padding: "8px" }}>
-              Reasoning
+              Technical
             </th>
             <th style={{ border: "1px solid #333", padding: "8px" }}>
-              Networks
+              Reasoning
             </th>
             <th style={{ border: "1px solid #333", padding: "8px" }}>Status</th>
           </tr>
@@ -252,10 +260,10 @@ const Report_Dashboard = () => {
                 {c.aptitude}
               </td>
               <td style={{ border: "1px solid #333", padding: "8px" }}>
-                {c.reasoning}
+                {c.technical}
               </td>
               <td style={{ border: "1px solid #333", padding: "8px" }}>
-                {c.networks}
+                {c.reasoning || 0}
               </td>
               <td style={{ border: "1px solid #333", padding: "8px" }}>
                 {isPass(c, cutOffs) ? (
@@ -275,245 +283,59 @@ const Report_Dashboard = () => {
     );
   };
 
-  // Assigned Users Modal Logic
-  const [selectedExamId, setSelectedExamId] = useState(null);
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <h1 className="dashboard-title">Hiring Test Dashboard</h1>
+        <p>Loading hiring test data...</p>
+      </div>
+    );
+  }
 
-  const handleExamRowClick = async (examId) => {
-    setSelectedExamId(examId);
-    setShowAssignedModal(true);
-    setLoadingAssigned(true);
-    setAssignedError(null);
-    try {
-      const resp = await axios.get(
-        `/api/dashboard/assignments/exam/${examId}/`
-      );
-      setAssignedUsers(resp.data);
-    } catch (err) {
-      setAssignedError("Failed to load assigned users.");
-      setAssignedUsers([]);
-    }
-    setLoadingAssigned(false);
-  };
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <h1 className="dashboard-title">Hiring Test Dashboard</h1>
+        <p style={{ color: "red" }}>{error}</p>
+      </div>
+    );
+  }
 
-  const closeAssignedModal = () => {
-    setShowAssignedModal(false);
-    setAssignedUsers([]);
-    setSelectedExamId(null);
-    setAssignedError(null);
-  };
+  if (!examData) {
+    return (
+      <div className="dashboard-container">
+        <h1 className="dashboard-title">Hiring Test Dashboard</h1>
+        <p>No test data available.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
-      <h1 className="dashboard-title">Dashboard</h1>
+      <h1 className="dashboard-title">Hiring Test Dashboard</h1>
 
+      {/* Single Card for the Exam */}
       <div className="card-grid">
-        {/* Success Rate Card */}
-        <div className="card">
-          <h2>Success Rate</h2>
-          <div
-            className="stat-number"
-            style={{ fontSize: "2.4rem", margin: "24px 0" }}
-          >
-            {successRate}
-          </div>
-        </div>
-
-        {/* Total Exams Card */}
-        <div className="card">
-          <div className="stat">
-            <p className="stat-label">Total Exams</p>
-            <p className="stat-number">{totalExams}</p>
-          </div>
-          <p className="card-subtext">Fetched from API</p>
-        </div>
-
-        {/* Upcoming Exams Card */}
-        <div className="card" onClick={() => setShowUpcomingModal(true)}>
-          <div className="stat">
-            <p className="stat-label">Upcoming Exams</p>
-            <p className="stat-number">{upcomingExams.length}</p>
-          </div>
-          <p className="card-subtext">Click for details</p>
-        </div>
-      </div>
-
-      {/* Upcoming Exams Modal */}
-      {showUpcomingModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Upcoming Exam Details</h2>
-            {upcomingExams.length === 0 ? (
-              <p>No upcoming exams.</p>
-            ) : (
-              <table className="upcoming-exams-table">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Venue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {upcomingExams.map((exam, idx) => (
-                    <tr
-                      key={idx}
-                      className={idx % 2 === 0 ? "even-row" : "odd-row"}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleExamRowClick(exam.exam_id)}
-                      title="Show assigned people"
-                    >
-                      <td>{exam.exam_title || "-"}</td>
-                      <td>
-                        {exam.exam_start_time
-                          ? new Date(exam.exam_start_time).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td>
-                        {exam.exam_start_time
-                          ? new Date(exam.exam_start_time).toLocaleTimeString(
-                              [],
-                              { hour: "2-digit", minute: "2-digit" }
-                            )
-                          : "-"}
-                        {" - "}
-                        {exam.exam_end_time
-                          ? new Date(exam.exam_end_time).toLocaleTimeString(
-                              [],
-                              { hour: "2-digit", minute: "2-digit" }
-                            )
-                          : "-"}
-                      </td>
-                      <td>{exam.location || "-"}</td>
-                      <td>
-                        <button onClick={() => handleExamRowClick(exam.id)}>
-                          View Assignments
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            <button className="modal-back-button" onClick={closeModal}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* All Exams Table for Assignments */}
-      <h2>Exam Dashboard</h2>
-      {loadingAllExams ? (
-        <p>Loading exams...</p>
-      ) : allExamsError ? (
-        <p style={{ color: "red" }}>{allExamsError}</p>
-      ) : (
-        <table
-          border="1"
-          cellPadding="10"
-          style={{ marginBottom: "20px", width: "100%" }}
+        <div
+          className="card"
+          onClick={() => {
+            setShowExamDetails(true);
+            setCustomCutOff(null);
+            setSectionCutOffs({});
+            setSelectedCandidate(null);
+          }}
+          style={{ cursor: "pointer" }}
         >
-          <thead>
-            <tr>
-              <th>Exam ID</th>
-              <th>Exam Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allExams.map((exam) => (
-              <tr key={exam.id}>
-                <td>{exam.id}</td>
-                <td>{exam.exam_title || exam.name}</td>
-                <td>
-                  <button onClick={() => handleExamRowClick(exam.id)}>
-                    View Assignments
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {/* Assigned Users Modal */}
-      {showAssignedModal && (
-        <div className="modal-overlay" onClick={closeAssignedModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Assigned People</h2>
-            {loadingAssigned ? (
-              <p>Loading...</p>
-            ) : assignedError ? (
-              <p style={{ color: "red" }}>{assignedError}</p>
-            ) : assignedUsers.length === 0 ? (
-              <p>No users assigned to this exam.</p>
-            ) : (
-              <table className="assigned-users-table">
-                <thead>
-                  <tr>
-                    <th>User ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Location</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assignedUsers.map((user) => (
-                    <tr key={user.assignment_id}>
-                      <td>{user.user_id}</td>
-                      <td>
-                        {user.first_name} {user.last_name}
-                      </td>
-                      <td>{user.email}</td>
-                      <td>{user.location || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            <button
-              className="modal-back-button"
-              onClick={closeAssignedModal}
-              style={{ marginTop: "20px" }}
-            >
-              Close
-            </button>
-          </div>
+          <h2>{'previous History'}</h2>
+          <p>Date: {examData.test_date}</p>
+          <p>Total Students: {examData.totalStudents}</p>
+          <p>Average Score: {examData.averageScore}</p>
+          <p>Avg Aptitude: {examData.averageAptitude} | Avg Technical: {examData.averageTechnical}</p>
         </div>
-      )}
-
-      <h1 className="dashboard-title">Reporting</h1>
-      <div className="report-filters">
-        <label>Sort by Date:</label>
-        <select
-          onChange={(e) => setSortOrder(e.target.value)}
-          value={sortOrder}
-        >
-          <option value="asc">Oldest First</option>
-          <option value="desc">Newest First</option>
-        </select>
       </div>
 
-      <div className="card-grid">
-        {sortedReports.map((exam) => (
-          <div
-            className="card"
-            key={exam.id}
-            onClick={() => {
-              setSelectedExam(exam);
-              setCustomCutOff(null);
-              setSectionCutOffs({});
-              setSelectedCandidate(null);
-            }}
-          >
-            <h2>{exam.name}</h2>
-            <p>Date: {exam.date}</p>
-          </div>
-        ))}
-      </div>
-
-      {(popupData || selectedExam) && (
+      {/* Modal for Exam Details */}
+      {(popupData || showExamDetails) && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             {popupData && (
@@ -528,10 +350,11 @@ const Report_Dashboard = () => {
               </>
             )}
 
-            {selectedExam && (
+            {showExamDetails && examData && (
               <>
-                <h2>{selectedExam.name} - Results</h2>
-                <p>Exam Date: {selectedExam.date}</p>
+                <h2>{'Hiring Test Results'}</h2>
+                <p>Test Date: {'may-2025'}</p>
+                <p>Total Students: {examData.totalStudents}</p>
                 
                 {/* Cutoff Configuration Section */}
                 <div style={{ 
@@ -552,7 +375,7 @@ const Report_Dashboard = () => {
                         checked={Object.keys(sectionCutOffs).length === 0}
                         onChange={() => {
                           setSectionCutOffs({});
-                          setCustomCutOff(selectedExam.cutOff);
+                          setCustomCutOff(50);
                         }}
                         style={{ marginRight: '5px' }}
                       />
@@ -566,9 +389,9 @@ const Report_Dashboard = () => {
                         onChange={() => {
                           setCustomCutOff(null);
                           setSectionCutOffs({
-                            aptitude: selectedExam.cutOff || 50,
-                            reasoning: selectedExam.cutOff || 50,
-                            networks: selectedExam.cutOff || 50
+                            aptitude: 50,
+                            technical: 50,
+                            reasoning: 50
                           });
                         }}
                         style={{ marginRight: '5px' }}
@@ -586,11 +409,11 @@ const Report_Dashboard = () => {
                           type="number"
                           min="0"
                           max="100"
-                          value={customCutOff !== null ? customCutOff : selectedExam.cutOff}
+                          value={customCutOff !== null ? customCutOff : 50}
                           onChange={(e) => setCustomCutOff(Number(e.target.value))}
                           style={{ 
                             padding: '4px 8px', 
-                            width: '70px', 
+                            width: '80px', 
                             marginLeft: '8px',
                             border: '1px solid #ced4da',
                             borderRadius: '4px'
@@ -629,6 +452,27 @@ const Report_Dashboard = () => {
                         />
                       </label>
                       <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                        Technical:
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={sectionCutOffs.technical || 0}
+                          onChange={(e) => setSectionCutOffs(prev => ({
+                            ...prev,
+                            technical: Number(e.target.value)
+                          }))}
+                          style={{ 
+                            padding: '4px 8px', 
+                            width: '60px', 
+                            minWidth: '0',
+                            marginLeft: '8px',
+                            border: '1px solid #ced4da',
+                            borderRadius: '4px'
+                          }}
+                        />
+                      </label>
+                      <label style={{ fontSize: '14px', fontWeight: '500' }}>
                         Reasoning:
                         <input
                           type="number"
@@ -649,28 +493,6 @@ const Report_Dashboard = () => {
                           }}
                         />
                       </label>
-                      <label style={{ fontSize: '14px', fontWeight: '500' }}>
-                        Networks:
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={sectionCutOffs.networks || 0}
-                          onChange={(e) => setSectionCutOffs(prev => ({
-                            ...prev,
-                            networks: Number(e.target.value)
-                          }))}
-                          style={{ 
-                            padding: '4px 8px', 
-                            width: '60px', 
-                            minWidth: '0',
-                            marginLeft: '8px',
-                            border: '1px solid #ced4da',
-                            borderRadius: '4px',
-                            boxSizing: 'border-box'
-                          }}
-                        />
-                      </label>
                     </div>
                   )}
                 </div>
@@ -687,7 +509,7 @@ const Report_Dashboard = () => {
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
-                          data={getPieData(selectedExam)}
+                          data={getPieData(examData)}
                           dataKey="value"
                           nameKey="name"
                           cx="50%"
@@ -695,7 +517,7 @@ const Report_Dashboard = () => {
                           outerRadius={80}
                           label
                         >
-                          {getPieData(selectedExam).map((entry, index) => (
+                          {getPieData(examData).map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
@@ -745,15 +567,15 @@ const Report_Dashboard = () => {
                           </button>
                         </div>
                         <ResponsiveContainer width="100%" height={250}>
-                          <BarChart data={getBarChartData(selectedExam)}>
+                          <BarChart data={getBarChartData(examData)}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
                             <YAxis />
                             <Tooltip />
                             <Legend />
                             <Bar dataKey="Aptitude" fill="#8884d8" />
-                            <Bar dataKey="Reasoning" fill="#82ca9d" />
-                            <Bar dataKey="Networks" fill="#ffc658" />
+                            <Bar dataKey="Technical" fill="#82ca9d" />
+                            <Bar dataKey="Reasoning" fill="#ffc658" />
                           </BarChart>
                         </ResponsiveContainer>
                       </>
@@ -776,14 +598,14 @@ const Report_Dashboard = () => {
                 </div>
                 
                 <CandidateTable
-                  exam={selectedExam}
+                  exam={examData}
                   cutOffs={Object.keys(sectionCutOffs).length > 0 ? sectionCutOffs : 
-                          (customCutOff !== null ? customCutOff : selectedExam.cutOff)}
+                          (customCutOff !== null ? customCutOff : 50)}
                 />
 
                 <button
                   className="download-button"
-                  onClick={() => exportToPDF(selectedExam)}
+                  onClick={() => exportToPDF(examData)}
                 >
                   Download PDF
                 </button>
@@ -799,4 +621,4 @@ const Report_Dashboard = () => {
   );
 };
 
-export default Report_Dashboard;
+export default HiringTest_Dashboard;

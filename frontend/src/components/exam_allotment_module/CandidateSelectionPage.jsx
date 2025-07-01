@@ -2,7 +2,6 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import '../../styles/exam_allotment_module_css/CandidateSelectionPage.css';
-import { apiClient } from '../../config/api';
 
 const CandidateSelectionPage = () => {
   const { examToken } = useParams();
@@ -10,9 +9,10 @@ const CandidateSelectionPage = () => {
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [activeTab, setActiveTab] = useState('internal'); // New state for tab switching
 
   useEffect(() => {
-    apiClient.get("/api/exam_allotment/select-candidates/")
+    axios.get("/api/exam_allotment/select-candidates/")
       .then(res => setCandidates(res.data))
       .catch(err => console.error("Error fetching candidates:", err));
   }, []);
@@ -36,7 +36,7 @@ const CandidateSelectionPage = () => {
 
     setIsSending(true);
 
-    apiClient.post("/api/exam_allotment/select-candidates/", {
+    axios.post("/api/exam_allotment/select-candidates/", {
       exam_token: examToken,
       selected_candidates: selectedCandidates
     })
@@ -59,111 +59,123 @@ const CandidateSelectionPage = () => {
     candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const renderCandidateCard = c => (
-    <div key={c.id} className="candidate-card">
-      <div
-        className="candidate-details"
-        title={`${c.user_id} — ${c.first_name} ${c.last_name} (${c.email})`}
-      >
-        <strong>{c.user_id}</strong> — {c.first_name} {c.last_name} ({c.email})
-      </div>
-      <div className="checkbox-container">
-        <input
-          type="checkbox"
-          checked={selectedCandidates.includes(c.id)}
-          onChange={() => handleCheckboxChange(c.id)}
-        />
-      </div>
+  const internalCandidates = filteredCandidates.filter(c => c.type === 'internal');
+  const externalCandidates = filteredCandidates.filter(c => c.type === 'external');
+
+  const renderTable = (candidatesList, type) => (
+    <div className="table-container">
+      <table className="candidate-table">
+        <thead>
+          <tr>
+            <th className="checkbox-column">
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  const candidateIds = candidatesList.map(c => c.id);
+                  if (e.target.checked) {
+                    setSelectedCandidates(prev => [...new Set([...prev, ...candidateIds])]);
+                  } else {
+                    setSelectedCandidates(prev => prev.filter(id => !candidateIds.includes(id)));
+                  }
+                }}
+                checked={candidatesList.length > 0 && candidatesList.every(c => selectedCandidates.includes(c.id))}
+              />
+            </th>
+            <th>User ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {candidatesList.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="no-data">
+                No {type} candidates found
+              </td>
+            </tr>
+          ) : (
+            candidatesList.map(c => (
+              <tr key={c.id} className={selectedCandidates.includes(c.id) ? 'selected-row' : ''}>
+                <td className="checkbox-column">
+                  <input
+                    type="checkbox"
+                    checked={selectedCandidates.includes(c.id)}
+                    onChange={() => handleCheckboxChange(c.id)}
+                  />
+                </td>
+                <td className="user-id-column">{c.user_id}</td>
+                <td>{c.first_name}</td>
+                <td>{c.last_name}</td>
+                <td className="email-column">{c.email}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 
   return (
     <div className="selection-wrapper">
       <div className="selection-container">
-        <h2>Select Candidates</h2>
+        <div className="header-section">
+          <h2>Select Candidates for Exam</h2>
+          <div className="selection-summary">
+            <span className="selected-count">
+              {selectedCandidates.length} candidate{selectedCandidates.length !== 1 ? 's' : ''} selected
+            </span>
+          </div>
+        </div>
 
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search by User ID, Name, or Email"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
+        <div className="search-section">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by User ID, Name, or Email..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-<div className="card-stack-tables">
-  <div className="card-table-section internal-table-section">
-    <h3>Internal Candidates</h3>
-    <table className="candidate-table">
-      <thead>
-        <tr>
-          <th>Select</th>
-          <th>User ID</th>
-          <th>Name</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filteredCandidates
-          .filter(c => c.type === 'internal')
-          .map(c => (
-            <tr key={c.id}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedCandidates.includes(c.id)}
-                  onChange={() => handleCheckboxChange(c.id)}
-                />
-              </td>
-              <td>{c.user_id}</td>
-              <td>{c.first_name} {c.last_name}</td>
-              <td>{c.email}</td>
-            </tr>
-          ))}
-      </tbody>
-    </table>
-  </div>
+        <div className="tabs-container">
+          <div className="tab-buttons">
+            <button
+              className={`tab-button ${activeTab === 'internal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('internal')}
+            >
+              Internal Candidates ({internalCandidates.length})
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'external' ? 'active' : ''}`}
+              onClick={() => setActiveTab('external')}
+            >
+              External Candidates ({externalCandidates.length})
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              All Candidates ({filteredCandidates.length})
+            </button>
+          </div>
 
-  <div className="card-table-section external-table-section">
-    <h3>External Candidates</h3>
-    <table className="candidate-table">
-      <thead>
-        <tr>
-          <th>Select</th>
-          <th>User ID</th>
-          <th>Name</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody>
-        {filteredCandidates
-          .filter(c => c.type === 'external')
-          .map(c => (
-            <tr key={c.id}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedCandidates.includes(c.id)}
-                  onChange={() => handleCheckboxChange(c.id)}
-                />
-              </td>
-              <td>{c.user_id}</td>
-              <td>{c.first_name} {c.last_name}</td>
-              <td>{c.email}</td>
-            </tr>
-          ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+          <div className="tab-content">
+            {activeTab === 'internal' && renderTable(internalCandidates, 'internal')}
+            {activeTab === 'external' && renderTable(externalCandidates, 'external')}
+            {activeTab === 'all' && renderTable(filteredCandidates, 'all')}
+          </div>
+        </div>
 
-
-        <button
-          className="submit-btn"
-          onClick={handleSubmit}
-          disabled={isSending}
-        >
-          {isSending ? 'Sending…' : 'Send Exam URL to Selected Candidates'}
-        </button>
+        <div className="action-section">
+          <button
+            className="submit-btn"
+            onClick={handleSubmit}
+            disabled={isSending || selectedCandidates.length === 0}
+          >
+            {isSending ? 'Sending Invitations...' : `Send Exam Invitations to ${selectedCandidates.length} Candidate${selectedCandidates.length !== 1 ? 's' : ''}`}
+          </button>
+        </div>
       </div>
     </div>
   );

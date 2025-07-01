@@ -1,12 +1,12 @@
 // frontend/src/components/dashboard/CompletedExams.jsx
 import React, { useEffect, useState } from "react";
-import { apiClient } from '../../config/api';
+import axios from "axios";
 
 const CompletedExams = () => {
   const [completedExams, setCompletedExams] = useState([]);
 
   useEffect(() => {
-    apiClient
+    axios
       .get("/api/exam_allotment/exams/completed/")
       .then((res) => setCompletedExams(res.data))
       .catch((err) => console.error("Error fetching completed exams:", err));

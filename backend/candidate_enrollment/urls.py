@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from .views import (
     SendOTPView,
     VerifyOTPAndRegisterView,
@@ -9,7 +10,8 @@ from .views import (
     InternalCandidateListCreateView,
     InternalCandidateDetailView,
     ExternalCandidateListCreateView,
-    ExternalCandidateDetailView
+    ExternalCandidateDetailView,
+    get_admin_user
 )
 
 urlpatterns = [
@@ -31,4 +33,6 @@ urlpatterns = [
     # External Candidates
     path('external-candidates/', ExternalCandidateListCreateView.as_view(), name='external-candidate-list'),
     path('external-candidates/<uuid:id>/', ExternalCandidateDetailView.as_view(), name='external-candidate-detail'),
+ 
+    path('admin-user/', views.get_admin_user, name='admin-user'),
 ]

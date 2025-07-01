@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/register_module_css/App.css";
 import axios from "axios";
-import { apiClient } from '../../config/api';
 
 const CandidateProfileForm = ({ userId }) => {
   const [candidate, setCandidate] = useState(null);
@@ -12,7 +11,7 @@ const CandidateProfileForm = ({ userId }) => {
     if (userId) {
       const token = localStorage.getItem("accessToken");
 
-      apiClient
+      axios
         .get(`/api/candidate/candidateList/?user_id=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,

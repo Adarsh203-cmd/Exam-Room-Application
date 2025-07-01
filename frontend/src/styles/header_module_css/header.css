@@ -6,9 +6,7 @@
   height: 10%;
 }
 
-
 /* Floating buttons are fixed to top right, always visible */
-
 
 .floating-buttons {
   position: fixed;
@@ -25,7 +23,7 @@
   width: 100px;
   height: 40px;
   background: #f4f6fa;
-  border: none;
+  border: 2px solid #333; /* Added black border */
   border-radius: 8px;
   padding: 10px 20px;
   display: flex !important;  /* Force flex display */
@@ -38,7 +36,7 @@
   font-weight: 600;
   white-space: nowrap;
   box-sizing: border-box;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s; /* Added border-color transition */
   margin: 0 !important;  /* Remove any potential margins */
   position: relative !important;  /* Ensure proper positioning */
 }
@@ -46,6 +44,7 @@
 .floating-btn:hover {
   background: #FFD54F;
   color: #222;
+  border-color: #222; /* Darker border on hover */
   box-shadow: 0 4px 16px rgba(255, 213, 79, 0.13);
 }
 
@@ -59,6 +58,7 @@
   display: flex !important;
   margin-bottom: 0 !important;
 }
+
 .admin-header {
   position: sticky;
   top: 0;

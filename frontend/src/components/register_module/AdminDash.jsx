@@ -25,7 +25,7 @@ const modules = [
   },
   {
     name: "Manage Profile",
-    icon: <FaClipboardList />,// add this to import
+    icon: <FaClipboardList />,
     path: "/candidate-management",
     color: "#FF5959"
   },
@@ -55,6 +55,12 @@ const modules = [
     path: "/manage-question",
     color: "#9D50BB"
   }
+  // {
+  //   name: "previous exam history",
+  //   icon: <FaTasks />,
+  //   path: "/HiringTest_Dashboard",
+  //   color: "#9D50BB"
+  // }
   
 ];
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from '../../config/api';
+import axios from "axios";
 import UserForm from "./UserForm";
 
 const SignupForm = () => {
@@ -10,7 +10,7 @@ const SignupForm = () => {
     e.preventDefault();
 
     try {
-      const response = await apiClient.post("/api/candidate/send-otp/", {
+      const response = await axios.post("/api/candidate/send-otp/", {
         email: formData.email,
       });
 

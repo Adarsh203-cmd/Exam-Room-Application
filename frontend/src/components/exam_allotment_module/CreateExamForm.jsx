@@ -1,15 +1,31 @@
+//createExam.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import "../../styles/exam_allotment_module_css/CreateExamForm.css";
-import { apiClient } from '../../config/api';
+
+// Utility to get current local datetime in 'YYYY-MM-DDTHH:mm' format
+function getNowLocal() {
+  const now = new Date();
+  now.setSeconds(0, 0); // Remove seconds & ms for input compatibility
+  const pad = n => String(n).padStart(2, '0');
+  return (
+    now.getFullYear() + '-' +
+    pad(now.getMonth() + 1) + '-' +
+    pad(now.getDate()) + 'T' +
+    pad(now.getHours()) + ':' +
+    pad(now.getMinutes())
+  );
+}
 
 const CreateExamForm = () => {
   const navigate = useNavigate();
 
+  // Set default start time to now
   const [formData, setFormData] = useState({
     exam_title: '',
     instruction: '',
-    exam_start_time: '',
+    exam_start_time: getNowLocal(),
     exam_end_time: '',
     created_by: '',
     role_or_department: '',
@@ -36,14 +52,22 @@ const CreateExamForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    apiClient.get('/api/exam_allotment/subjects/')
+    axios.get('/api/exam_allotment/subjects/')
       .then(res => setAllSubjects(res.data || []))
       .catch(err => console.error('Failed to fetch subjects:', err));
   }, []);
 
   const handleInputChange = e => {
     const { name, value } = e.target;
-    setFormData(fd => ({ ...fd, [name]: value }));
+    setFormData(fd => {
+      // If start time changes and end time is before new start, reset end time
+      if (name === 'exam_start_time' && fd.exam_end_time) {
+        if (new Date(fd.exam_end_time) <= new Date(value)) {
+          return { ...fd, [name]: value, exam_end_time: '' };
+        }
+      }
+      return { ...fd, [name]: value };
+    });
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -55,53 +79,43 @@ const CreateExamForm = () => {
     );
   };
 
-  // Replace your existing fetchQuestions function with this:
+  const fetchQuestions = async (subject, latestCounts) => {
+    const { mcq = 0, fib = 0 } = latestCounts[subject] || {};
+    if (mcq <= 0 && fib <= 0) return;
 
-const fetchQuestions = async (subject, latestCounts) => {
-  const { mcq = 0, fib = 0 } = latestCounts[subject] || {};
-  if (mcq <= 0 && fib <= 0) return;
+    setIsLoading(true);
 
-  setIsLoading(true);
-  
-  try {
-    const res = await apiClient.get('/api/exam_allotment/random-questions/', {
-      params: { subject, mcq_count: mcq, fib_count: fib }
-    });
-    
-    // Update the fetched questions for this subject
-    setFetchedQuestions(fq => ({ ...fq, [subject]: res.data }));
-    
-    // ✅ CRITICAL FIX: Regenerate ALL question IDs from ALL subjects
-    setFetchedQuestions(currentFetchedQuestions => {
-      const updatedFetchedQuestions = { ...currentFetchedQuestions, [subject]: res.data };
-      
-      // Collect ALL question IDs from ALL selected subjects
-      const allMcqIds = [];
-      const allFibIds = [];
-      
-      Object.keys(updatedFetchedQuestions).forEach(subj => {
-        if (selectedSubjects.includes(subj) && updatedFetchedQuestions[subj]) {
-          allMcqIds.push(...updatedFetchedQuestions[subj].mcq.map(q => q.id));
-          allFibIds.push(...updatedFetchedQuestions[subj].fib.map(q => q.id));
-        }
+    try {
+      const res = await axios.get('/api/exam_allotment/random-questions/', {
+        params: { subject, mcq_count: mcq, fib_count: fib }
       });
-      
-      // Update formData with the complete set of question IDs
-      setFormData(fd => ({
-        ...fd,
-        mcq_question_ids: allMcqIds,
-        fib_question_ids: allFibIds
-      }));
-      
-      return updatedFetchedQuestions;
-    });
-    
-  } catch (err) {
-    console.error(`Error fetching questions for ${subject}:`, err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+      setFetchedQuestions(fq => ({ ...fq, [subject]: res.data }));
+
+      setFetchedQuestions(currentFetchedQuestions => {
+        const updatedFetchedQuestions = { ...currentFetchedQuestions, [subject]: res.data };
+        const allMcqIds = [];
+        const allFibIds = [];
+        Object.keys(updatedFetchedQuestions).forEach(subj => {
+          if (selectedSubjects.includes(subj) && updatedFetchedQuestions[subj]) {
+            allMcqIds.push(...updatedFetchedQuestions[subj].mcq.map(q => q.id));
+            allFibIds.push(...updatedFetchedQuestions[subj].fib.map(q => q.id));
+          }
+        });
+        setFormData(fd => ({
+          ...fd,
+          mcq_question_ids: allMcqIds,
+          fib_question_ids: allFibIds
+        }));
+        return updatedFetchedQuestions;
+      });
+
+    } catch (err) {
+      console.error(`Error fetching questions for ${subject}:`, err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCountChange = (subject, type, value) => {
     const num = parseInt(value, 10) || 0;
@@ -115,6 +129,7 @@ const fetchQuestions = async (subject, latestCounts) => {
     });
   };
 
+  // Date validation logic
   const validateForm = () => {
     const newErrors = {};
 
@@ -122,6 +137,22 @@ const fetchQuestions = async (subject, latestCounts) => {
     if (!formData.instruction.trim()) newErrors.instruction = 'Instruction is required';
     if (!formData.exam_start_time) newErrors.exam_start_time = 'Start time is required';
     if (!formData.exam_end_time) newErrors.exam_end_time = 'End time is required';
+
+    // Date validation
+    const nowLocal = getNowLocal();
+    if (formData.exam_start_time) {
+      const start = new Date(formData.exam_start_time);
+      const now = new Date(nowLocal);
+
+      // Start time cannot be in the past
+      if (start < now) {
+        newErrors.exam_start_time = 'Start time cannot be in the past';
+      }
+      // Start date cannot be a previous day
+      if (formData.exam_start_time.slice(0,10) < nowLocal.slice(0,10)) {
+        newErrors.exam_start_time = 'Start date cannot be a previous day';
+      }
+    }
     if (formData.exam_start_time && formData.exam_end_time) {
       const start = new Date(formData.exam_start_time);
       const end = new Date(formData.exam_end_time);
@@ -148,41 +179,31 @@ const fetchQuestions = async (subject, latestCounts) => {
     }
 
     try {
-    // ✅ FIX: Convert datetime-local values to IST timezone before sending to Django
-    const convertToIST = (datetimeLocal) => {
-      if (!datetimeLocal) return datetimeLocal;
-      
-      // datetime-local gives us: "2025-05-28T10:45"
-      // We need to tell Django this is IST time, not UTC
-      // Convert to ISO format with IST timezone offset
-      const localDate = new Date(datetimeLocal);
-      
-      // Since the user entered this time thinking it's IST,
-      // we need to create an ISO string that represents this time in IST
-      const istOffset = '+05:30';
-      const isoString = datetimeLocal + ':00' + istOffset;
-      
-      return isoString;
-    };
+      // Convert datetime-local values to IST timezone before sending to Django
+      const convertToIST = (datetimeLocal) => {
+        if (!datetimeLocal) return datetimeLocal;
+        const istOffset = '+05:30';
+        return datetimeLocal + ':00' + istOffset;
+      };
 
-    const payload = {
-      ...formData,
-      created_by: parseInt(formData.created_by, 10),
-      // Convert both start and end times to IST timezone format
-      exam_start_time: convertToIST(formData.exam_start_time),
-      exam_end_time: convertToIST(formData.exam_end_time),
-    };
-    
-    console.log('Payload being sent:', payload); // Debug log
-    
-    const examRes = await apiClient.post('/api/exam_allotment/exams/', payload);
-    const exam = examRes.data;
-    navigate(`/select-candidates/${exam.exam_token}`);
-  } catch (err) {
-    console.error('Exam creation failed:', err.response?.data || err);
-    alert('Failed to create exam—see console for details.');
-  }
-};
+      const payload = {
+        ...formData,
+        created_by: parseInt(formData.created_by, 10),
+        exam_start_time: convertToIST(formData.exam_start_time),
+        exam_end_time: convertToIST(formData.exam_end_time),
+      };
+
+      const examRes = await axios.post('/api/exam_allotment/exams/', payload);
+      const exam = examRes.data;
+      navigate(`/select-candidates/${exam.exam_token}`);
+    } catch (err) {
+      console.error('Exam creation failed:', err.response?.data || err);
+      alert('Failed to create exam—see console for details.');
+    }
+  };
+
+  // For min attribute of end time input
+  const minEndTime = formData.exam_start_time || getNowLocal();
 
   return (
     <div className="exam-form-container">
@@ -226,9 +247,11 @@ const fetchQuestions = async (subject, latestCounts) => {
                   type="datetime-local"
                   name="exam_start_time"
                   ref={refs.exam_start_time}
+                  min={getNowLocal()}
                   value={formData.exam_start_time}
                   onChange={handleInputChange}
                   className="form-input"
+                  required
                 />
                 {errors.exam_start_time && <div className="error-message">⚠ {errors.exam_start_time}</div>}
               </div>
@@ -239,9 +262,11 @@ const fetchQuestions = async (subject, latestCounts) => {
                   type="datetime-local"
                   name="exam_end_time"
                   ref={refs.exam_end_time}
+                  min={minEndTime}
                   value={formData.exam_end_time}
                   onChange={handleInputChange}
                   className="form-input"
+                  required
                 />
                 {errors.exam_end_time && <div className="error-message">⚠ {errors.exam_end_time}</div>}
               </div>
@@ -289,54 +314,51 @@ const fetchQuestions = async (subject, latestCounts) => {
               {errors.location && <div className="error-message">⚠ {errors.location}</div>}
             </div>
 
-
-<div className="subjects-section">
-  <div className="subjects-title">Select Subjects</div>
-  {allSubjects.map(subj => (
-    <div key={subj} className="subject-item">
-      <div className="subject-row">
-        <label className="subject-checkbox-label">
-          <input 
-            type="checkbox"
-            className="subject-checkbox"
-            checked={selectedSubjects.includes(subj)}
-            onChange={() => toggleSubject(subj)} 
-          />
-          <span className="subject-name">{subj}</span>
-        </label>
-        
-        {selectedSubjects.includes(subj) && (
-          <div className="question-counts-inline">
-            <div className="count-group">
-              <input 
-                type="number" 
-                min="0" 
-                placeholder="0"
-                value={counts[subj]?.mcq || ''}
-                onChange={e => handleCountChange(subj, 'mcq', e.target.value)}
-                className="count-input"
-              />
-              <label className="count-label">MCQ</label>
+            <div className="subjects-section">
+              <div className="subjects-title">Select Subjects</div>
+              {allSubjects.map(subj => (
+                <div key={subj} className="subject-item">
+                  <div className="subject-row">
+                    <label className="subject-checkbox-label">
+                      <input 
+                        type="checkbox"
+                        className="subject-checkbox"
+                        checked={selectedSubjects.includes(subj)}
+                        onChange={() => toggleSubject(subj)} 
+                      />
+                      <span className="subject-name">{subj}</span>
+                    </label>
+                    
+                    {selectedSubjects.includes(subj) && (
+                      <div className="question-counts-inline">
+                        <div className="count-group">
+                          <input 
+                            type="number" 
+                            min="0" 
+                            placeholder="0"
+                            value={counts[subj]?.mcq || ''}
+                            onChange={e => handleCountChange(subj, 'mcq', e.target.value)}
+                            className="count-input"
+                          />
+                          <label className="count-label">MCQ</label>
+                        </div>
+                        <div className="count-group">
+                          <input 
+                            type="number" 
+                            min="0" 
+                            placeholder="0"
+                            value={counts[subj]?.fib || ''}
+                            onChange={e => handleCountChange(subj, 'fib', e.target.value)}
+                            className="count-input"
+                          />
+                          <label className="count-label">FIB</label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="count-group">
-              <input 
-                type="number" 
-                min="0" 
-                placeholder="0"
-                value={counts[subj]?.fib || ''}
-                onChange={e => handleCountChange(subj, 'fib', e.target.value)}
-                className="count-input"
-              />
-              <label className="count-label">FIB</label>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  ))}
-</div>
-
-
 
             <button 
               type="submit" 

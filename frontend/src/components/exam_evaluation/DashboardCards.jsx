@@ -1,8 +1,14 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
-const DashboardCards = ({ successRateData, totalExams, upcomingExams, handlePopup }) => {
+const DashboardCards = ({ successRateData, totalExams, upcomingExams, hiringTestData,handlePopup }) => {
   const COLORS = ['#38A169', '#E53E3E'];
+
+  // Calculate hiring test stats
+  const totalCandidates = hiringTestData?.length || 0;
+  const avgScore = totalCandidates > 0 
+    ? Math.round((hiringTestData.reduce((sum, test) => sum + test.total_score, 0) / totalCandidates) * 100) / 100
+    : 0;
 
   return (
     <div className="card-grid">
@@ -44,6 +50,16 @@ const DashboardCards = ({ successRateData, totalExams, upcomingExams, handlePopu
           <p className="stat-number">{upcomingExams}</p>
         </div>
         <p className="card-subtext">Click for details</p>
+      </div>
+
+      {/* Hiring Test Card */}
+      <div className="card" onClick={() => handlePopup("hiringTest")}>
+        <h2>Hiring Test 2024-25</h2>
+        <p className="card-number">{totalCandidates}</p>
+        <p>Total Candidates</p>
+        <p style={{ fontSize: "14px", marginTop: "5px" }}>
+          Avg Score: {avgScore}
+        </p>
       </div>
     </div>
   );

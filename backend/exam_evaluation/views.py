@@ -20,6 +20,8 @@ from .models import ExamResult, SubjectWiseResult, QuestionResult
 from django.db.models import Avg, Max
 import json
 from collections import defaultdict
+from .models import ElogixaHiringTestData
+from datetime import datetime
 
 
 @api_view(['POST'])
@@ -551,3 +553,47 @@ def get_exam_details(request, exam_id):
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+def elogixa_hiring_test_data(request):
+    """
+    API endpoint to fetch Elogixa hiring test data
+    """
+    try:
+        # Fetch all records from the database
+        test_data = ElogixaHiringTestData.objects.all().order_by('-test_date', '-id')
+        
+        # Format the data to match your frontend expectations
+        formatted_data = []
+        for record in test_data:
+            formatted_data.append({
+                'id': record.id,
+                'name': record.candidate_name,
+                'aptitude': record.aptitude,
+                'technical': record.technical,
+                'total_score': record.total_score,
+                'test_date': record.test_date.strftime('%Y-%m-%d') if record.test_date else None,
+                # Format to match your existing exam structure
+                'candidates': [{
+                    'name': record.candidate_name,
+                    'score': record.total_score,
+                    'aptitude': record.aptitude,
+                    'technical': record.technical,
+                    'reasoning': 0,  # Not available in this dataset
+                    'networks': 0,   # Not available in this dataset
+                }]
+            })
+        
+        return Response({
+            'success': True,
+            'data': formatted_data,
+            'count': len(formatted_data)
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)

@@ -14,14 +14,30 @@ const CandidateTable = ({
     direction: 'desc'
   });
   const [sortedCandidates, setSortedCandidates] = useState([]);
-  const [subjectColumns, setSubjectColumns] = useState(['aptitude', 'reasoning', 'networks']);
+  const [processedSubjects, setProcessedSubjects] = useState({
+    aptitudeSubjects: [],
+    technicalSubjects: [],
+    generalSubjects: [],
+    allSubjects: []
+  });
   
-  // Set up subject columns from exam statistics
+  // Process subjects to group them by prefix
   useEffect(() => {
     if (examStatistics && examStatistics.subject_statistics) {
-      // Extract subject names from the statistics
       const subjects = examStatistics.subject_statistics.map(stat => stat.subject);
-      setSubjectColumns(subjects);
+      
+      const aptitudeSubjects = subjects.filter(subject => subject.startsWith('APT'));
+      const technicalSubjects = subjects.filter(subject => subject.startsWith('TECH'));
+      const generalSubjects = subjects.filter(subject => 
+        !subject.startsWith('APT') && !subject.startsWith('TECH')
+      );
+      
+      setProcessedSubjects({
+        aptitudeSubjects,
+        technicalSubjects,
+        generalSubjects,
+        allSubjects: subjects
+      });
     }
   }, [examStatistics]);
   
@@ -41,17 +57,10 @@ const CandidateTable = ({
       if (aStatus !== bStatus) return bStatus - aStatus;
       
       // Then sort by the specified column
-      // Handle sorting by subject scores
-      if (sortConfig.key.startsWith('subject_')) {
-        const subjectName = sortConfig.key.replace('subject_', '');
-        
-        const aScore = a.subjectScores ? 
-          (a.subjectScores[subjectName] !== undefined ? a.subjectScores[subjectName] : -1) : 
-          (a[subjectName.toLowerCase()] !== undefined ? a[subjectName.toLowerCase()] : -1);
-          
-        const bScore = b.subjectScores ? 
-          (b.subjectScores[subjectName] !== undefined ? b.subjectScores[subjectName] : -1) : 
-          (b[subjectName.toLowerCase()] !== undefined ? b[subjectName.toLowerCase()] : -1);
+      // Handle sorting by grouped subjects
+      if (sortConfig.key === 'APTITUDE') {
+        const aScore = getGroupedScore(a, processedSubjects.aptitudeSubjects);
+        const bScore = getGroupedScore(b, processedSubjects.aptitudeSubjects);
         
         if (aScore < bScore) {
           return sortConfig.direction === 'asc' ? -1 : 1;
@@ -62,7 +71,37 @@ const CandidateTable = ({
         return 0;
       }
       
-      // Regular property sorting
+      if (sortConfig.key === 'TECHNICAL') {
+        const aScore = getGroupedScore(a, processedSubjects.technicalSubjects);
+        const bScore = getGroupedScore(b, processedSubjects.technicalSubjects);
+        
+        if (aScore < bScore) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aScore > bScore) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      }
+      
+      // Handle sorting by general subjects
+      if (processedSubjects.generalSubjects.includes(sortConfig.key)) {
+        const aScore = getSubjectScore(a, sortConfig.key);
+        const bScore = getSubjectScore(b, sortConfig.key);
+        
+        const aScoreNum = aScore === 'N/A' ? -1 : parseFloat(aScore);
+        const bScoreNum = bScore === 'N/A' ? -1 : parseFloat(bScore);
+        
+        if (aScoreNum < bScoreNum) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aScoreNum > bScoreNum) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      }
+      
+      // Regular property sorting (name, score)
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
@@ -73,7 +112,7 @@ const CandidateTable = ({
     });
     
     setSortedCandidates(candidatesCopy);
-  }, [exam, cutOff, sortConfig, isPass]);
+  }, [exam, cutOff, sortConfig, isPass, processedSubjects]);
   
   // Handle sorting when a column header is clicked
   const requestSort = (key) => {
@@ -97,33 +136,57 @@ const CandidateTable = ({
   
   // Get subject score with simplified logic to reduce console logs and improve performance
   const getSubjectScore = (candidate, subject) => {
-  if (!candidate) return 'N/A';
-  
-  // First try the new standardized subjectScores object
-  if (candidate.subjectScores && candidate.subjectScores[subject] !== undefined) {
-    return candidate.subjectScores[subject];
-  }
-  
-  // Case-insensitive search in subjectScores
-  if (candidate.subjectScores) {
-    const subjectKey = Object.keys(candidate.subjectScores).find(key => 
-      key.toLowerCase() === subject.toLowerCase()
-    );
+    if (!candidate) return 'N/A';
     
-    if (subjectKey !== undefined) {
-      return candidate.subjectScores[subjectKey];
+    // First try the new standardized subjectScores object
+    if (candidate.subjectScores && candidate.subjectScores[subject] !== undefined) {
+      return candidate.subjectScores[subject];
     }
-  }
+    
+    // Case-insensitive search in subjectScores
+    if (candidate.subjectScores) {
+      const subjectKey = Object.keys(candidate.subjectScores).find(key => 
+        key.toLowerCase() === subject.toLowerCase()
+      );
+      
+      if (subjectKey !== undefined) {
+        return candidate.subjectScores[subjectKey];
+      }
+    }
+    
+    // Fall back to direct property access for backward compatibility
+    if (candidate[subject.toLowerCase()] !== undefined) {
+      return candidate[subject.toLowerCase()];
+    }
+    
+    return 'N/A';
+  };
   
-  // Fall back to direct property access for backward compatibility
-  if (candidate[subject.toLowerCase()] !== undefined) {
-    return candidate[subject.toLowerCase()];
-  }
+  // Get grouped score (sum of all subjects in a group)
+  const getGroupedScore = (candidate, subjectList) => {
+    if (!candidate || !subjectList || subjectList.length === 0) return 0;
+    
+    let totalScore = 0;
+    let hasValidScore = false;
+    
+    subjectList.forEach(subject => {
+      const score = getSubjectScore(candidate, subject);
+      if (score !== 'N/A') {
+        totalScore += parseFloat(score) || 0;
+        hasValidScore = true;
+      }
+    });
+    
+    return hasValidScore ? totalScore : 'N/A';
+  };
   
-  return 'N/A';
-}
+  // Check if a specific grouped subject score is below the cutoff
+  const isGroupedSubjectFailed = (candidate, subjectList, cutOff) => {
+    const score = getGroupedScore(candidate, subjectList);
+    return score !== 'N/A' && parseFloat(score) < cutOff;
+  };
   
-  // Check if a specific subject score is below the cutoff
+  // Check if a specific individual subject score is below the cutoff
   const isSubjectFailed = (candidate, subject, cutOff) => {
     const score = getSubjectScore(candidate, subject);
     return score !== 'N/A' && parseFloat(score) < cutOff;
@@ -151,14 +214,34 @@ const CandidateTable = ({
               Total Score{getSortIndicator('score')}
             </th>
             
-            {/* Dynamic subject columns */}
-            {subjectColumns.map((subject) => (
+            {/* APTITUDE column (if APT subjects exist) */}
+            {processedSubjects.aptitudeSubjects.length > 0 && (
+              <th 
+                style={tableHeaderStyle} 
+                onClick={() => requestSort('APTITUDE')}
+              >
+                APTITUDE{getSortIndicator('APTITUDE')}
+              </th>
+            )}
+            
+            {/* TECHNICAL column (if TECH subjects exist) */}
+            {processedSubjects.technicalSubjects.length > 0 && (
+              <th 
+                style={tableHeaderStyle} 
+                onClick={() => requestSort('TECHNICAL')}
+              >
+                TECHNICAL{getSortIndicator('TECHNICAL')}
+              </th>
+            )}
+            
+            {/* Individual GENERAL subject columns */}
+            {processedSubjects.generalSubjects.map((subject) => (
               <th 
                 key={subject}
                 style={tableHeaderStyle} 
-                onClick={() => requestSort(`subject_${subject}`)}
+                onClick={() => requestSort(subject)}
               >
-                {subject}{getSortIndicator(`subject_${subject}`)}
+                {subject}{getSortIndicator(subject)}
               </th>
             ))}
             
@@ -188,8 +271,26 @@ const CandidateTable = ({
                 <td style={tableCellStyle}>{candidate.name}</td>
                 <td style={tableCellStyle}>{candidate.score}</td>
                 
-                {/* Dynamic subject score cells */}
-                {subjectColumns.map((subject) => {
+                {/* APTITUDE score cell */}
+                {processedSubjects.aptitudeSubjects.length > 0 && (
+                  <td style={tableCellStyle}>
+                    <span style={isGroupedSubjectFailed(candidate, processedSubjects.aptitudeSubjects, cutOff) ? failTextStyle : null}>
+                      {getGroupedScore(candidate, processedSubjects.aptitudeSubjects)}
+                    </span>
+                  </td>
+                )}
+                
+                {/* TECHNICAL score cell */}
+                {processedSubjects.technicalSubjects.length > 0 && (
+                  <td style={tableCellStyle}>
+                    <span style={isGroupedSubjectFailed(candidate, processedSubjects.technicalSubjects, cutOff) ? failTextStyle : null}>
+                      {getGroupedScore(candidate, processedSubjects.technicalSubjects)}
+                    </span>
+                  </td>
+                )}
+                
+                {/* General subject score cells */}
+                {processedSubjects.generalSubjects.map((subject) => {
                   const score = getSubjectScore(candidate, subject);
                   const failed = isSubjectFailed(candidate, subject, cutOff);
                   

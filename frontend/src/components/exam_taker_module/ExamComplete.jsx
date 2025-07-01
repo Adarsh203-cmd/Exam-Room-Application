@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from '../../config/api';
+import axios from "axios";
 import {
   CheckCircle,
   XCircle,
@@ -39,7 +39,7 @@ const ExamComplete = () => {
         let resultId;
 
         try {
-          evaluationResponse = await apiClient.post(
+          evaluationResponse = await axios.post(
             `/api/evaluation/evaluate/${attemptId}/`,
             {},
             {
@@ -81,7 +81,7 @@ const ExamComplete = () => {
               } else {
                 // Option 2: Try to fetch the latest result for this candidate
                 // This assumes you have an endpoint to get candidate results
-                const candidateResultsResponse = await apiClient.get(
+                const candidateResultsResponse = await axios.get(
                   `/api/evaluation/candidate-results/`, // You might need to pass candidate ID
                   {
                     headers: {
@@ -122,7 +122,7 @@ const ExamComplete = () => {
 
           while (retryCount < maxRetries) {
             try {
-              resultResponse = await apiClient.get(
+              resultResponse = await axios.get(
                 `/api/evaluation/result/${resultId}/`,
                 {
                   headers: {

@@ -1,4 +1,6 @@
 /* Dashboard Container */
+
+
 .dashboard-container {
   padding: 20px;
   overflow-x: auto;
@@ -100,7 +102,7 @@
   padding: 30px;
   border-radius: 8px;
   width: 80%;
-  max-width: 700px;
+  max-width: 60%;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
@@ -131,7 +133,7 @@
   padding: 12px 0;
   margin-top: 20px;
   background-color: #007BFF;
-  color: white;
+  color: rgb(113, 155, 239);
   border: none;
   border-radius: 6px;
   font-size: 16px;

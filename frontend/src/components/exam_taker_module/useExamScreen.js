@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import useFullScreen from "./useFullScreen";
-import { apiClient } from '../../config/api';
 
 /**
  * Custom hook for handling exam screen logic
@@ -61,7 +61,7 @@ const useExamScreen = () => {
 
       try {
         // First fetch questions
-        const questionsResponse = await apiClient.get(
+        const questionsResponse = await axios.get(
           `/api/exam-view/fetch-questions/`,
           {
             headers: {
@@ -121,7 +121,7 @@ const useExamScreen = () => {
         }
 
         // Then get the exam timing information
-        const examResponse = await apiClient.get(`/api/exam-view/start-exam/`, {
+        const examResponse = await axios.get(`/api/exam-view/start-exam/`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -330,7 +330,7 @@ const useExamScreen = () => {
 
       try {
         // Send data in the format expected by the backend
-        const response = await apiClient.post(
+        const response = await axios.post(
           "/api/exam-view/submit-answers/",
           {
             attempt_id: currentAttemptId,

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import DashboardCards from "./DashboardCards";
 import ExamReporting from "./ExamReporting";
 import ExamDetailsModal from "./ExamDetailsModal";
+import HiringTest_Dashboard from "../Dashboard_module/HiringTest_Dashboard";
+import DashboardPopupModal from './DashboardPopupModal';
 import "../../styles/Exam_evaluation/Report_dashboard.css";
-import { apiClient } from '../../config/api';
 
 const Report_Dashboard = () => {
   // States for main data
@@ -18,11 +20,16 @@ const Report_Dashboard = () => {
   const [allExams, setAllExams] = useState([]);
   const [upcomingExamsList, setUpcomingExamsList] = useState([]);
 
+  // States for hiring test
+  const [hiringTestData, setHiringTestData] = useState([]);
+  const [showHiringTestModal, setShowHiringTestModal] = useState(false);
+
   // States for modal and UI interaction
   const [popupData, setPopupData] = useState({
     success: null,
     examStats: null,
     upcoming: null,
+    hiringTest: null,
     current: null,
   });
   const [selectedExam, setSelectedExam] = useState(null);
@@ -34,12 +41,19 @@ const Report_Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // State for filter - SIMPLIFIED to prevent infinite loops
+  const [filteredExams, setFilteredExams] = useState([]);
+  const [filterYear, setFilterYear] = useState(null);
+  const [filterMonth, setFilterMonth] = useState(null);
+  const [filterSortOrder, setFilterSortOrder] = useState('asc');
+
   // API endpoints
   const API_BASE_URL = "/api";
   const EXAMS_URL = `${API_BASE_URL}/evaluation/exams`;
   const STATS_URL = `${API_BASE_URL}/evaluation/dashboard-stats`;
   const ALL_EXAMS_URL = `${API_BASE_URL}/evaluation/all-exams`;
   const UPCOMING_EXAMS_URL = `${API_BASE_URL}/evaluation/upcoming-exams`;
+  const HIRING_TEST_URL = `${API_BASE_URL}/evaluation/hiring-test-data`;
 
   // Function to navigate to select-candidates page
   const handleAssignCandidates = (examToken) => {
@@ -76,12 +90,86 @@ const Report_Dashboard = () => {
     return true;
   };
 
+  // MEMOIZED FILTER FUNCTION to prevent recreation on every render
+  const filterAndSortExams = useCallback((examReports, year, month, sortOrder) => {
+    let filteredExams = [...examReports];
+    
+    // Apply year and month filters
+    if (year || month) {
+      filteredExams = filteredExams.filter(exam => {
+        const examDate = new Date(exam.date || exam.exam_start_time);
+        
+        // Skip invalid dates
+        if (isNaN(examDate.getTime())) {
+          return false;
+        }
+        
+        const examYear = examDate.getFullYear();
+        const examMonth = examDate.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
+        
+        // Check year filter
+        if (year && examYear !== parseInt(year)) {
+          return false;
+        }
+        
+        // Check month filter
+        if (month && examMonth !== parseInt(month)) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Apply sorting
+    filteredExams.sort((a, b) => {
+      const dateA = new Date(a.date || a.exam_start_time);
+      const dateB = new Date(b.date || b.exam_start_time);
+      
+      // Handle invalid dates by putting them at the end
+      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+      
+      if (sortOrder === 'desc') {
+        return dateB - dateA; // Newest first
+      } else {
+        return dateA - dateB; // Oldest first
+      }
+    });
+    
+    return filteredExams;
+  }, []);
+
+  // SIMPLIFIED FILTER CHANGE HANDLER
+  const handleFilterChange = useCallback((filters) => {
+    setFilterYear(filters.year);
+    setFilterMonth(filters.month);
+    setFilterSortOrder(filters.sortOrder);
+  }, []);
+
+  // Fetch hiring test data
+  const fetchHiringTestData = async () => {
+    try {
+      const response = await axios.get(HIRING_TEST_URL);
+      if (response.data.success) {
+        setHiringTestData(response.data.data);
+        return response.data.data;
+      }
+      return [];
+    } catch (err) {
+      console.error("Error fetching hiring test data:", err);
+      return [];
+    }
+  };
+
   // Initialize popup data for the dashboard cards
   const initializePopupData = (
     successRate,
     totalExamsCount,
     allExamsData,
-    upcomingExamsList
+    upcomingExamsList,
+    hiringTestData
   ) => {
     if (!upcomingExamsList || !Array.isArray(upcomingExamsList)) {
       console.error("upcomingExamsList is not an array:", upcomingExamsList);
@@ -356,6 +444,35 @@ const Report_Dashboard = () => {
           </>
         ),
       },
+      hiringTest: {
+        title: "Hiring Test Details",
+        content: (
+          <>
+            <p>Total Candidates: {hiringTestData.length}</p>
+            <p>
+              Average Score: {hiringTestData.length > 0 
+                ? Math.round((hiringTestData.reduce((sum, test) => sum + test.total_score, 0) / hiringTestData.length) * 100) / 100
+                : 0
+              }
+            </p>
+            <div style={{ marginTop: "20px" }}>
+              <button
+                onClick={() => setShowHiringTestModal(true)}
+                style={{
+                  background: "#007BFF",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                View Detailed History
+              </button>
+            </div>
+          </>
+        ),
+      },
       current: null,
     });
   };
@@ -366,7 +483,7 @@ const Report_Dashboard = () => {
         setLoading(true);
 
         // Fetch exam reports for evaluated exams
-        const examsResponse = await apiClient.get(EXAMS_URL);
+        const examsResponse = await axios.get(EXAMS_URL);
 
         // Process exam reports to consolidate by exam ID
         const examsMap = {};
@@ -389,7 +506,7 @@ const Report_Dashboard = () => {
         for (const exam of uniqueExams) {
           try {
             // Try to fetch detailed exam information with subject scores
-            const detailsResponse = await apiClient.get(
+            const detailsResponse = await axios.get(
               `${API_BASE_URL}/evaluation/exam-details/${exam.id}/`
             );
 
@@ -420,7 +537,7 @@ const Report_Dashboard = () => {
         // Fetch all exams from exam_creation table
         let allExamsResponse;
         try {
-          allExamsResponse = await apiClient.get(ALL_EXAMS_URL);
+          allExamsResponse = await axios.get(ALL_EXAMS_URL);
           setAllExams(allExamsResponse.data);
         } catch (err) {
           console.error("Error fetching all exams:", err);
@@ -432,7 +549,7 @@ const Report_Dashboard = () => {
         // Now includes candidates directly in the response
         let upcomingExamsData = [];
         try {
-          const upcomingExamsResponse = await apiClient.get(UPCOMING_EXAMS_URL);
+          const upcomingExamsResponse = await axios.get(UPCOMING_EXAMS_URL);
 
           // Debug output to check the structure of the response
           console.log("Upcoming exams response:", upcomingExamsResponse.data);
@@ -461,8 +578,11 @@ const Report_Dashboard = () => {
         setUpcomingExamsList(upcomingExamsData);
         setUpcomingExams(upcomingExamsData.length);
 
+        // Fetch hiring test data
+        const hiringTestData = await fetchHiringTestData();
+
         // Fetch dashboard statistics
-        const statsResponse = await apiClient.get(STATS_URL);
+        const statsResponse = await axios.get(STATS_URL);
         const { success_rate, total_exams } = statsResponse.data;
 
         // If we have allExams, use that count instead
@@ -480,7 +600,8 @@ const Report_Dashboard = () => {
           success_rate,
           actualTotalExams,
           allExamsResponse?.data || [],
-          upcomingExamsData
+          upcomingExamsData,
+          hiringTestData
         );
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -498,6 +619,14 @@ const Report_Dashboard = () => {
       // This will run when the component unmounts
     };
   }, []); // Empty dependency array means this only runs on mount
+
+  // SEPARATE useEffect FOR FILTERING - with proper dependencies
+  useEffect(() => {
+    if (uniqueEvaluatedExams.length > 0) {
+      const filtered = filterAndSortExams(uniqueEvaluatedExams, filterYear, filterMonth, filterSortOrder);
+      setFilteredExams(filtered);
+    }
+  }, [uniqueEvaluatedExams, filterYear, filterMonth, filterSortOrder, filterAndSortExams]);
 
   // Handle showing the candidates popup for an upcoming exam
   const showCandidatesPopup = (exam, examDate) => {
@@ -631,9 +760,13 @@ const Report_Dashboard = () => {
           successRateData[0].value,
           totalExams,
           allExams,
-          upcomingExamsList
+          upcomingExamsList,
+          hiringTestData
         );
         setPopupData((prev) => ({ ...prev, current: prev.upcoming }));
+        break;
+      case "hiringTest":
+        setPopupData((prev) => ({ ...prev, current: prev.hiringTest }));
         break;
       default:
         break;
@@ -646,6 +779,11 @@ const Report_Dashboard = () => {
     setSelectedExam(null);
     setCustomCutOff(null);
     setSelectedCandidate(null);
+  };
+
+  // Close hiring test modal
+  const closeHiringTestModal = () => {
+    setShowHiringTestModal(false);
   };
 
   // When an exam is selected, prepare and fetch additional data
@@ -679,45 +817,69 @@ const Report_Dashboard = () => {
   }
 
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">Dashboard</h1>
+  <div className="dashboard-container">
+    <h1 className="dashboard-title">Dashboard</h1>
 
-      {/* Dashboard Cards Component */}
+    {/* Enhanced Dashboard Cards Component with Hiring Test */}
+    <div className="dashboard-cards-container">
       <DashboardCards
         successRateData={successRateData}
         totalExams={totalExams}
         upcomingExams={upcomingExams}
+        hiringTestData={hiringTestData}
         handlePopup={handlePopup}
       />
+    </div>
 
-      <h1 className="dashboard-title">Reporting</h1>
+    <h1 className="dashboard-title">Reporting</h1>
 
-      {/* Exam Reporting Component */}
-      <ExamReporting
-        examReports={uniqueEvaluatedExams}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
-        setSelectedExam={prepareExamSelection}
+    {/* Exam Reporting Component */}
+    <ExamReporting
+      examReports={filteredExams}
+      sortOrder={filterSortOrder}
+      setSortOrder={(newSortOrder) => {
+        setFilterSortOrder(newSortOrder);
+      }}
+      setSelectedExam={prepareExamSelection}
+      setCustomCutOff={setCustomCutOff}
+      setSelectedCandidate={setSelectedCandidate}
+      isPass={isPass}
+      onFilterChange={handleFilterChange}
+      allExamReports={uniqueEvaluatedExams}
+    />
+
+    {/* Dashboard Popup Modal - for card clicks */}
+    {(popupData && popupData.current && !selectedExam) && (
+      <DashboardPopupModal
+        popupData={popupData}
+        closeModal={closeModal}
+      />
+    )}
+
+    {/* Exam Details Modal - for exam selection from reporting */}
+    {selectedExam && (
+      <ExamDetailsModal
+        popupData={popupData}
+        selectedExam={selectedExam}
+        customCutOff={customCutOff}
         setCustomCutOff={setCustomCutOff}
+        selectedCandidate={selectedCandidate}
         setSelectedCandidate={setSelectedCandidate}
+        closeModal={closeModal}
         isPass={isPass}
       />
+    )}
 
-      {/* Modal Component */}
-      {((popupData && popupData.current) || selectedExam) && (
-        <ExamDetailsModal
-          popupData={popupData}
-          selectedExam={selectedExam}
-          customCutOff={customCutOff}
-          setCustomCutOff={setCustomCutOff}
-          selectedCandidate={selectedCandidate}
-          setSelectedCandidate={setSelectedCandidate}
-          closeModal={closeModal}
-          isPass={isPass}
-        />
-      )}
-    </div>
-  );
+    {/* Hiring Test Modal */}
+    {showHiringTestModal && (
+      <div className="modal-overlay" onClick={closeHiringTestModal}>
+        <div className="modal-content hiring-test-modal" onClick={(e) => e.stopPropagation()}>
+          <HiringTest_Dashboard />
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Report_Dashboard;

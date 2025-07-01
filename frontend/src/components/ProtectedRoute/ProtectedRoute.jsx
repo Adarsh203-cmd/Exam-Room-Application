@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
         // Check if this is an exam session (both internal and external candidates can take exams)
         if (examToken && (role === "external" || role === "internal")) {
           // For exam takers, verify by fetching exam questions
-          await apiClient.get(
+          await axios.get(
             `/api/exam-view/fetch-questions/?exam_token=${examToken}`,
             {
               headers: {
@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
           );
         } else {
           // For other users or non-exam sessions, verify their profile
-          await apiClient.get("/api/candidate/profile/", {
+          await axios.get("/api/candidate/profile/", {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

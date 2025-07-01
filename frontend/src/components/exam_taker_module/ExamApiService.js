@@ -1,5 +1,4 @@
 import axios from "axios";
-import { apiClient } from '../../config/api';
 
 const API_BASE_URL = "/api";
 
@@ -39,7 +38,7 @@ apiClient.interceptors.response.use(
           throw new Error("No refresh token available");
         }
 
-        const response = await apiClient.post(
+        const response = await axios.post(
           `${API_BASE_URL}/auth/token/refresh/`,
           {
             refresh: refreshToken,

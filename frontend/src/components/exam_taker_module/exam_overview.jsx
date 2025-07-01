@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from '../../config/api';
 
 const ExamOverview = () => {
   const [examInfo, setExamInfo] = useState(null);
@@ -23,7 +23,7 @@ const ExamOverview = () => {
         console.log("Fetching exam data with token:", examToken);
 
         // First, get exam timing info which marks the exam as started
-        const examResponse = await apiClient.get(`/api/exam-view/start-exam/`, {
+        const examResponse = await axios.get(`/api/exam-view/start-exam/`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             // Include exam_token in headers since this is a GET request
@@ -36,7 +36,7 @@ const ExamOverview = () => {
         console.log("Start exam response:", examResponse.data);
 
         // Then, fetch questions to get exam details
-        const questionsResponse = await apiClient.get(
+        const questionsResponse = await axios.get(
           `/api/exam-view/fetch-questions/`,
           {
             headers: {

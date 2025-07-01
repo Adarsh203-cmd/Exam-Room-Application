@@ -484,3 +484,22 @@ class ExternalCandidateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ExternalCandidate.objects.all()
     serializer_class = ExternalCandidateSerializer
     lookup_field = 'id'
+
+
+
+@api_view(['GET'])
+def get_admin_user(request):
+    try:
+        admin_user = User.objects.filter(is_superuser=True).first()
+        return Response({
+            'id': admin_user.id,
+            'username': admin_user.username,
+            'first_name': admin_user.first_name,
+            'last_name': admin_user.last_name,
+            'email': admin_user.email,
+            'phone': getattr(admin_user, 'phone', 'N/A')  # If you have phone field
+        })
+    except:
+        return Response({'error': 'Admin user not found'}, status=404)
+
+        

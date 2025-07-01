@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import UserForm from "./UserForm";
-import { apiClient } from '../../config/api';
 
 const EmployeeForm = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const EmployeeForm = () => {
     e.preventDefault();
 
     try {
-      const response = await apiClient.post("/api/candidate/send-otp/", {
+      const response = await axios.post("/api/candidate/send-otp/", {
         email: formData.email,
       });
 

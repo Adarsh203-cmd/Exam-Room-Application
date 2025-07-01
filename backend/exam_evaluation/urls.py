@@ -5,7 +5,8 @@ from .views import (
     get_result,
     get_candidate_results,
     get_exam_statistics,
-    get_exam_details
+    get_exam_details,
+    elogixa_hiring_test_data
 ) 
 
 urlpatterns = [
@@ -26,4 +27,5 @@ urlpatterns = [
     path('all-exams', views.all_exams),
     path('upcoming-exams', views.upcoming_exams),
     path('exam-details/<int:exam_id>/', views.get_exam_details, name='get_exam_details'),
+    path('hiring-test-data/', views.elogixa_hiring_test_data, name='elogixa_hiring_test_data'),
 ]

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import { ThreeDots } from "react-loader-spinner";
 import "../../styles/register_module_css/App.css";
-import { apiClient } from '../../config/api';
 
 const ExamLogin = () => {
   const [userID, setUserID] = useState("");
@@ -30,7 +30,7 @@ const ExamLogin = () => {
       setIsValidatingTime(true);
 
       // Fetch exam details by token
-      const response = await apiClient.get(
+      const response = await axios.get(
         `/api/exam_allotment/exams/get_by_token/?token=${examToken}`
       );
 
@@ -125,7 +125,7 @@ const ExamLogin = () => {
         exam_token: examToken,
       });
 
-      const response = await apiClient.post("/api/exam-view/exam-login/", {
+      const response = await axios.post("/api/exam-view/exam-login/", {
         user_id: userID,
         password: password,
         exam_token: examToken,

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { apiClient } from '../../config/api';
 
-const CandidateTable = ({ candidates, onUpdate, onDelete }) => (
+const CandidateTable = ({ candidates, onUpdate, onDelete, adminUser }) => (
   <div style={{ width: '100%', padding: '1rem', overflowY: 'auto', maxHeight: '90vh' }}>
     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
       <thead>
@@ -15,6 +14,19 @@ const CandidateTable = ({ candidates, onUpdate, onDelete }) => (
         </tr>
       </thead>
       <tbody>
+        {/* Fixed Admin User Row */}
+        {adminUser && (
+          <tr style={{ backgroundColor: '#e8f5e8', fontWeight: 'bold' }}>
+            <td style={tdStyle}>{adminUser.first_name }</td>
+            <td style={tdStyle}>{adminUser.last_name || 'User'}</td>
+            <td style={tdStyle}>{adminUser.email}</td>
+            <td style={tdStyle}>{adminUser.phone || 'N/A'}</td>
+            <td style={tdStyle}>
+              <span style={{ color: '#666', fontSize: '12px' }}>Admin Account</span>
+            </td>
+          </tr>
+        )}
+        
         {candidates.length === 0 ? (
           <tr>
             <td colSpan={5} style={{ padding: '0.5rem', textAlign: 'center' }}>No records found</td>
@@ -45,20 +57,44 @@ const Candidate_Management = () => {
   const [editCandidate, setEditCandidate] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+  const [adminUser, setAdminUser] = useState(null);
 
   // State for delete confirmation dialog
   const [deleteCandidateId, setDeleteCandidateId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Fetch admin user details
+  const fetchAdminUser = async () => {
+    try {
+      const res = await axios.get('api/candidate/admin-user/'); // You'll need to create this endpoint
+      setAdminUser(res.data);
+    } catch (error) {
+      console.error('Error fetching admin user:', error);
+      // Fallback to hardcoded admin data if API fails
+      // setAdminUser({
+      //   id: 1,
+      //   username: 'adminelogixa01',
+      //   first_name: '',
+      //   last_name: '',
+      //   email: 'hrelogixa@gmail.com',
+      //   phone: 'N/A'
+      // });
+    }
+  };
+
   const fetchCandidates = async () => {
     const url = `/api/candidate/${candidateType}-candidates/?search=${search}`;
     try {
-      const res = await apiClient.get(url);
+      const res = await axios.get(url);
       setCandidates(res.data);
     } catch (error) {
       console.error('Error fetching candidates:', error);
     }
   };
+
+  useEffect(() => {
+    fetchAdminUser(); // Fetch admin user on component mount
+  }, []);
 
   useEffect(() => {
     fetchCandidates();
@@ -156,6 +192,7 @@ const Candidate_Management = () => {
         candidates={candidates}
         onDelete={confirmDeleteCandidate}
         onUpdate={setEditCandidate}
+        adminUser={adminUser}
       />
 
       {/* Delete Confirmation Dialog */}

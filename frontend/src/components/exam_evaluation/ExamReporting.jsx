@@ -1,6 +1,16 @@
 import React from 'react';
+import EnhancedExamFilter from './EnhancedExamFilter';
 
-const ExamReporting = ({ examReports, sortOrder, setSortOrder, setSelectedExam, setCustomCutOff, setSelectedCandidate }) => {
+const ExamReporting = ({ 
+  examReports, 
+  sortOrder, 
+  setSortOrder, 
+  setSelectedExam, 
+  setCustomCutOff, 
+  setSelectedCandidate,
+  allExamReports,
+  onFilterChange // Add this missing prop
+}) => {
   // Sort the exam reports based on the sort order (date)
   const sortedReports = [...examReports].sort((a, b) =>
     sortOrder === 'asc'
@@ -11,11 +21,12 @@ const ExamReporting = ({ examReports, sortOrder, setSortOrder, setSelectedExam, 
   return (
     <>
       <div className="report-filters">
-        <label>Sort by Date:</label>
-        <select onChange={(e) => setSortOrder(e.target.value)} value={sortOrder}>
-          <option value="asc">Oldest First</option>
-          <option value="desc">Newest First</option>
-        </select>
+        <EnhancedExamFilter
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          onFilterChange={onFilterChange}
+          examReports={allExamReports || examReports}
+        />
       </div>
 
       <div className="card-grid">
@@ -31,7 +42,11 @@ const ExamReporting = ({ examReports, sortOrder, setSortOrder, setSelectedExam, 
               }}
             >
               <h2>{exam.name}</h2>
-              <p>Date: {exam.date}</p>
+              <p>Date: {new Date(exam.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+              })}</p>
               <p>Candidates: {exam.candidates.length}</p>
             </div>
           ))

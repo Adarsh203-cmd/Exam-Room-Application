@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserForm from "./UserForm";
-import { apiClient } from '../../config/api';
-
+import axios from "axios";
 
 const SecondRegisterPage = () => {
   const navigate = useNavigate();
@@ -44,7 +43,7 @@ const SecondRegisterPage = () => {
     };
 
     try {
-      const response = await apiClient.post("/api/candidate/send-otp/", {
+      const response = await axios.post("/api/candidate/send-otp/", {
         email: finalFormData.email,
       });
       if (response.status === 200) {

@@ -1,6 +1,8 @@
 # Create your models here.
 from django.db import models
 from exam_taker.models import ExamAttempt
+from django.core.validators import MinValueValidator
+from django.utils import timezone
 
 class ExamResult(models.Model):
     """
@@ -71,3 +73,47 @@ class QuestionResult(models.Model):
     class Meta:
         db_table = 'question_result'
         unique_together = ('exam_result', 'question_type', 'question_id')
+
+
+#This is the models that stores the previous data 
+# backend/exam_evaluation/models.py
+
+
+class ElogixaHiringTestData(models.Model):
+    """
+    Model to store hiring test data for candidates including aptitude and technical scores.
+    """
+    
+    candidate_name = models.CharField(
+        max_length=100, 
+        null=False, 
+        blank=False
+    )
+    
+    aptitude = models.PositiveIntegerField(
+        validators=[MinValueValidator(0)]
+    )
+    
+    technical = models.PositiveIntegerField(
+        validators=[MinValueValidator(0)]
+    )
+    
+    test_date = models.DateField(
+        null=True, 
+        blank=True,
+        default=timezone.now
+    )
+    
+    class Meta:
+        db_table = 'elogixa_hiring_test_data'
+        verbose_name = "Elogixa Hiring Test Data"
+        verbose_name_plural = "Elogixa Hiring Test Data"
+        ordering = ['-test_date', '-id']
+    
+    @property
+    def total_score(self):
+        """Calculate total score as sum of aptitude and technical scores."""
+        return self.aptitude + self.technical
+    
+    def __str__(self):
+        return f"{self.candidate_name} - Total: {self.total_score}"

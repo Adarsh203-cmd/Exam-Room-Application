@@ -77,6 +77,30 @@ const UserForm = ({
           error = "Aadhar number must be exactly 12 digits";
         }
         break;
+          case "dob":
+      // Validate date is between 18 and 60 years ago
+      const birthDate = new Date(value);
+      const today = new Date();
+
+      const minDOB = new Date(
+        today.getFullYear() - 60,
+        today.getMonth(),
+        today.getDate()
+      );
+      const maxDOB = new Date(
+        today.getFullYear() - 18,
+        today.getMonth(),
+        today.getDate()
+      );
+
+      if (birthDate > maxDOB) {
+        error = "You must be at least 18 years old";
+      } else if (birthDate < minDOB) {
+        error = "Age cannot be greater than 60 years";
+      }
+      break;
+
+    
       default:
         break;
     }
